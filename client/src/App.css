@@ -1,0 +1,212 @@
+/* --- 1. FONTS & GLOBAL THEME (PARCHMENT) --- */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Roboto:wght@400;700&display=swap');
+
+body {
+  background-color: #d8c8a7; /* Darker aged paper background */
+  color: #2c1b18;            /* Dark "Iron Gall Ink" brown text */
+  font-family: 'Roboto', sans-serif;
+  margin: 0;
+  padding: 0;
+  /* Optional: Adds a subtle paper texture feel */
+  background-image: linear-gradient(to bottom, #d8c8a7, #d0c0a0);
+  min-height: 100vh;
+}
+
+h1, h2, h3 {
+  font-family: 'Cinzel', serif;
+  color: #5a3a29; /* Dark Leather Brown */
+  text-shadow: 0px 1px 1px rgba(255, 255, 255, 0.5); /* Etched look */
+  text-align: center;
+  margin-top: 0;
+}
+
+.App {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+/* --- 2. THE "CARD" CONTAINER (SHEET OF PAPER) --- */
+.card {
+  background-color: #f3e5c9;       /* Light, fresh parchment color */
+  border: 1px solid #b5a68e;       /* Subtle paper edge */
+  border-top: 5px solid #8b5a2b;   /* Leather brown accent bar */
+  border-radius: 4px;              /* Slight rounding, like cut paper */
+  padding: 25px;
+  margin-bottom: 30px;
+  /* Shadow looks like paper lifting off the table */
+  box-shadow: 2px 5px 15px rgba(44, 27, 24, 0.15); 
+}
+
+/* --- 3. INPUTS & DROPDOWNS --- */
+.row {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+input, select {
+  padding: 12px;
+  background-color: #fffcf5; /* Very light cream */
+  border: 1px solid #a67c52; /* Brown ink border */
+  color: #2c1b18;            /* Dark ink text */
+  border-radius: 3px;
+  font-size: 1rem;
+  font-family: 'Roboto', sans-serif;
+  transition: all 0.3s ease;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: #d4af37; /* Gold focus glow */
+  box-shadow: 0 0 5px rgba(139, 90, 43, 0.3);
+  background-color: #fff;
+}
+
+/* --- 4. STAT BLOCK GRID --- */
+.stats-grid {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin: 25px 0;
+  flex-wrap: wrap;
+  /* A slightly darker box to group stats */
+  background: rgba(139, 90, 43, 0.1); 
+  padding: 15px;
+  border-radius: 6px;
+  border: 1px solid #d1c4b0;
+}
+
+.stat-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-box label {
+  font-weight: bold;
+  color: #5a3a29; /* Dark Brown */
+  margin-bottom: 5px;
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+}
+
+.stat-box input {
+  width: 50px;
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: bold;
+  border: 2px solid #8b5a2b; /* Thicker border for stats */
+}
+
+/* --- 5. SKILLS & WEAPONS --- */
+.skills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 25px;
+  background: #eaddcf; /* Slightly darkened paper for contrast */
+  padding: 20px;
+  border-radius: 4px;
+  border: 1px solid #c7b299;
+}
+
+.skill-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  color: #3e2723;
+  font-weight: 500;
+}
+
+.skill-item:hover {
+  color: #8b0000; /* Dark Red on hover */
+}
+
+input[type="checkbox"] {
+  accent-color: #8b5a2b; /* Brown checkmarks */
+  width: 16px;
+  height: 16px;
+}
+
+/* --- 6. BUTTONS --- */
+button {
+  background-color: #8b5a2b; /* Leather Brown */
+  color: #fdf5e6;            /* Cream Text */
+  border: 1px solid #5d4037;
+  padding: 10px 24px;
+  font-family: 'Cinzel', serif;
+  font-weight: bold;
+  font-size: 0.9rem;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+button:hover {
+  background-color: #6d4c41; /* Darker Leather */
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+/* Delete Button (Wax Seal Red) */
+button[style*="background-color: #ff4444"] {
+  background-color: #9e2a2b !important; 
+  color: white;
+  border-color: #721c24;
+}
+button[style*="background-color: #ff4444"]:hover {
+  background-color: #721c24 !important;
+}
+
+/* Edit Button (Burnt Orange/Gold) */
+button[style*="background-color: #ff9800"] {
+  background-color: #cd7f32 !important; /* Bronze */
+  color: #fff;
+  border-color: #a0522d;
+}
+
+/* --- 7. CHARACTER LIST CARDS --- */
+.char-display {
+  background-color: #fffcf5;
+  border: 1px solid #d7ccc8;
+  margin-bottom: 15px;
+  border-radius: 3px;
+  padding: 20px;
+  position: relative;
+  transition: all 0.3s;
+  text-align: left;
+}
+
+.char-display:hover {
+  border-color: #8b5a2b;
+  box-shadow: 0 4px 8px rgba(139, 90, 43, 0.15);
+}
+
+.char-display h3 {
+  margin-top: 0;
+  text-align: left;
+  color: #5a3a29;
+  border-bottom: 2px solid #eaddcf;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+}
+
+.char-display p {
+  line-height: 1.6;
+  color: #4e342e;
+}
+
+.char-display strong {
+  color: #8b0000; /* Important stats in Dark Red */
+}
