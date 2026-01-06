@@ -21,6 +21,22 @@ const CLASS_DATA = {
   "Wizard": { hit_die: "d6" }
 };
 
+// MASTER LIST OF SPECIES FEATURES (2024 / 5e Standard)
+const SPECIES_FEATURES = {
+  "Human": ["Resourceful (Heroic Inspiration)", "Skillful (Proficiency +1)", "Versatile (Feat)"],
+  "Elf": ["Darkvision (60ft)", "Keen Senses", "Fey Ancestry", "Trance"],
+  "Dwarf": ["Darkvision (60ft)", "Dwarven Resilience", "Dwarven Toughness", "Stonecunning"],
+  "Halfling": ["Lucky", "Brave", "Halfling Nimbleness", "Naturally Stealthy"],
+  "Orc": ["Darkvision (60ft)", "Adrenaline Rush", "Relentless Endurance", "Powerful Build"],
+  "Tiefling": ["Darkvision (60ft)", "Hellish Resistance", "Infernal Legacy"],
+  "Gnome": ["Darkvision (60ft)", "Gnome Cunning"],
+  "Dragonborn": ["Breath Weapon", "Damage Resistance", "Darkvision (60ft)"],
+  "Goliath": ["Little Giant", "Mountain Born", "Stone's Endurance"],
+  "Aasimar": ["Darkvision (60ft)", "Celestial Resistance", "Healing Hands", "Light Bearer"],
+  "Warforged": ["Constructed Resilience", "Sentry's Rest", "Integrated Protection", "Specialized Design"],
+  "Genasi": ["Darkvision (60ft)", "Elemental Resistance"]
+};
+
 // MASTER LIST OF CLASS FEATURES (Levels 1-20)
 const CLASS_FEATURES = {
   "Artificer": {
@@ -392,6 +408,7 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
     armor_prof: {}, weapon_prof: {}, languages: {}, tools_prof: {}, skill_prof: {},
     feats: [], 
     class_features: [], // AUTO-GENERATED LIST
+    species_features: [], // NEW AUTO-GENERATED LIST
 
     custom_armor: "", custom_weapon: "", custom_language: "", custom_skills: "", custom_tools: "", custom_features: ""
   });
@@ -408,23 +425,27 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
   }, [formData.char_class, formData.level]);
 
   // --- AUTOMATION: Class Features ---
-  // Calculates features based on Class + Level
   useEffect(() => {
     if (CLASS_FEATURES[formData.char_class]) {
       let activeFeatures = [];
-      // Loop from Level 1 up to current Level
       for (let i = 1; i <= formData.level; i++) {
         const featsAtLevel = CLASS_FEATURES[formData.char_class][i];
-        if (featsAtLevel) {
-          activeFeatures = [...activeFeatures, ...featsAtLevel];
-        }
+        if (featsAtLevel) activeFeatures = [...activeFeatures, ...featsAtLevel];
       }
       setFormData(prev => ({ ...prev, class_features: activeFeatures }));
     } else {
-      // If custom class or no class selected
       setFormData(prev => ({ ...prev, class_features: [] }));
     }
   }, [formData.char_class, formData.level]);
+
+  // --- AUTOMATION: Species Features (NEW) ---
+  useEffect(() => {
+    if (SPECIES_FEATURES[formData.race]) {
+      setFormData(prev => ({ ...prev, species_features: SPECIES_FEATURES[formData.race] }));
+    } else {
+      setFormData(prev => ({ ...prev, species_features: [] }));
+    }
+  }, [formData.race]);
 
 
   // --- LOAD DATA ---
@@ -460,6 +481,7 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
         
         feats: ext.feats || [],
         class_features: ext.class_features || [], 
+        species_features: ext.species_features || [], // Load saved species features
 
         custom_armor: ext.custom_armor || "",
         custom_weapon: ext.custom_weapon || "",
@@ -476,7 +498,7 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
         name: "", race: "", char_class: "", subclass: "", level: 1, 
         background: "", alignment: "", hp_max: 10, ac: 10, speed: 30, initiative: 0, hit_dice_total: "1d8",
         str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10,
-        armor_prof: {}, weapon_prof: {}, languages: {}, tools_prof: {}, skill_prof: {}, feats: [], class_features: [],
+        armor_prof: {}, weapon_prof: {}, languages: {}, tools_prof: {}, skill_prof: {}, feats: [], class_features: [], species_features: [],
         custom_armor: "", custom_weapon: "", custom_language: "", custom_skills: "", custom_tools: "", custom_features: ""
       });
       setIsCustomRace(false);
@@ -551,6 +573,7 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
         skill_prof: formData.skill_prof,
         feats: formData.feats,
         class_features: formData.class_features, 
+        species_features: formData.species_features, // SAVE SPECIES FEATURES
         
         custom_armor: formData.custom_armor,
         custom_weapon: formData.custom_weapon,
@@ -638,17 +661,20 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
       <div style={{ border: "1px solid #ccc", padding: "1rem", marginTop: "1rem", borderRadius: "5px", background: "#fff" }}>
         <h3 style={{ marginTop: 0, fontSize: "1rem", borderBottom: "1px solid #eee", paddingBottom: "5px" }}>Class Features</h3>
         
-        {/* Auto-Generated List */}
+        {/* Auto-Generated Class Features */}
         <div style={{display: "flex", flexWrap: "wrap", gap: "5px", marginBottom: "10px"}}>
           {formData.class_features.length === 0 ? <span style={{color: "#888", fontSize: "0.9em"}}>Features will appear here based on Class & Level...</span> : null}
-          
           {formData.class_features.map((feat, idx) => (
-            <span key={idx} style={{
-              background: "#673AB7", color: "white", padding: "4px 8px", 
-              borderRadius: "4px", fontSize: "0.85em", fontWeight: "bold"
-            }}>
-              {feat}
-            </span>
+            <span key={idx} style={{background: "#673AB7", color: "white", padding: "4px 8px", borderRadius: "4px", fontSize: "0.85em", fontWeight: "bold"}}>{feat}</span>
+          ))}
+        </div>
+
+        {/* Auto-Generated Species Features */}
+        <h4 style={{ fontSize: "0.9rem", color: "#666", marginBottom: "5px" }}>Species Features:</h4>
+        <div style={{display: "flex", flexWrap: "wrap", gap: "5px", marginBottom: "10px"}}>
+          {formData.species_features.length === 0 ? <span style={{color: "#888", fontSize: "0.9em"}}>Select a Species...</span> : null}
+          {formData.species_features.map((feat, idx) => (
+            <span key={idx} style={{background: "#009688", color: "white", padding: "4px 8px", borderRadius: "4px", fontSize: "0.85em", fontWeight: "bold"}}>{feat}</span>
           ))}
         </div>
 
@@ -658,13 +684,7 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
           placeholder="Additional / Subclass Features (Custom)" 
           value={formData.custom_features} 
           onChange={handleChange} 
-          style={{
-            width: "100%", 
-            boxSizing: "border-box", // Prevents overflow
-            padding: "8px",
-            border: "1px solid #ccc",
-            borderRadius: "4px"
-          }} 
+          style={{width: "100%", boxSizing: "border-box", padding: "8px", border: "1px solid #ccc", borderRadius: "4px"}} 
         />
       </div>
 
