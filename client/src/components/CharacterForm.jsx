@@ -55,6 +55,20 @@ const ARMOR_TABLE = {
   "Plate": { base: 18, type: "heavy", stealth_dis: true, str_req: 15 }
 };
 
+
+// --- INVENTORY DATA ---
+const PACKS_LIST = ["Burglar's Pack", "Diplomat's Pack", "Dungeoneer's Pack", "Entertainer's Pack", "Explorer's Pack", "Priest's Pack", "Scholar's Pack"];
+
+const SIMPLE_WEAPONS = [
+  "Club", "Dagger", "Greatclub", "Handaxe", "Javelin", "Light Hammer", "Mace", "Quarterstaff", "Sickle", "Spear", 
+  "Crossbow, Light", "Dart", "Shortbow", "Sling"
+];
+
+const MARTIAL_WEAPONS = [
+  "Battleaxe", "Flail", "Glaive", "Greataxe", "Greatsword", "Halberd", "Lance", "Longsword", "Maul", "Morningstar", "Pike", "Rapier", "Scimitar", "Shortsword", "Trident", "War Pick", "Warhammer", "Whip", 
+  "Blowgun", "Crossbow, Hand", "Crossbow, Heavy", "Longbow", "Net"
+];
+
 // --- BACKGROUNDS (Origins - Ability Scores & Skills) ---
 // Simplified list for 2024 Origins logic
 const BACKGROUNDS = {
@@ -781,6 +795,7 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
     //Equipment
     equipped_armor: "None",
     shield_equipped: false,
+    custom_armor_stats: { name: "", base: 10, type: "light" },
 
     //Saving Throws
     saving_throws: [],
@@ -789,7 +804,10 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
     armor_prof: {}, weapon_prof: {}, languages: {}, tools_prof: {}, skill_prof: {},
     feats: [], class_features: [], species_features: [], subclass_features: [],
 
-    // --- NEW SPELLCASTING ENGINE ---
+    // INVENTORY ARRAY
+    inventory: [],
+
+    // SPELLCASTING ENGINE ---
     spell_save_dc: 0, 
     spell_attack_mod: 0,
     
@@ -813,6 +831,7 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
   const [tempSpells, setTempSpells] = useState({0:"", 1:"", 2:"", 3:"", 4:"", 5:"", 6:"", 7:"", 8:"", 9:""});
   const subSpellData = SUBCLASS_SPELL_DATA[formData.subclass];
   const classData = CLASS_DATA[formData.char_class];
+  const [newItem, setNewItem] = useState({ type: "Weapon", name: "", isCustom: false });
 
   // Caster Type: Check Subclass first ("third"), then Class ("full"/"half"), otherwise "none"
   const casterType = subSpellData ? subSpellData.type : (classData?.caster_type || "none");
@@ -842,8 +861,20 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
 
     const calculatedHP = (hitDie + conMod) + ((avgDie + conMod) * (lvl - 1)) + toughFeat;
 
-    // 3. AC CALCULATION
-    const armor = ARMOR_TABLE[formData.equipped_armor] || ARMOR_TABLE["None"];
+// 3. AC CALCULATION
+    let armor;
+    
+    // Check if using Custom Armor logic
+    if (formData.equipped_armor === "Custom") {
+      armor = { 
+        base: parseInt(formData.custom_armor_stats.base) || 10, 
+        type: formData.custom_armor_stats.type 
+      };
+    } else {
+      // Otherwise use the standard table
+      armor = ARMOR_TABLE[formData.equipped_armor] || ARMOR_TABLE["None"];
+    }
+
     let calculatedAC = armor.base;
 
     if (armor.type === "light" || armor.type === "none") {
@@ -860,7 +891,7 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
     } else if (armor.type === "medium") {
       calculatedAC += Math.min(dexMod, 2); // Cap Dex at +2
     }
-    // Heavy armor gets no Dex
+    // Heavy armor gets no Dex bonus
 
     if (formData.shield_equipped) calculatedAC += 2;
 
@@ -1011,13 +1042,13 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
         languages: ext.languages || {},
         tools_prof: ext.tools_prof || {},
         skill_prof: ext.skill_prof || {},
+        inventory: ext.inventory || [],
 
         feats: ext.feats || [],
         class_features: ext.class_features || [], 
         species_features: ext.species_features || [],
         subclass_features: ext.subclass_features || [],
 
-        // NEW SPELL DATA
         spells: loadedSpells,
         slots: loadedSlots,
         spell_save_dc: 0, 
@@ -1028,7 +1059,8 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
         custom_language: ext.custom_language || "",
         custom_skills: ext.custom_skills || "", 
         custom_tools: ext.custom_tools || "",
-        custom_features: ext.custom_features || ""
+        custom_features: ext.custom_features || "",
+        custom_armor_stats: ext.custom_armor_stats || { name: "", base: 10, type: "light" }
       });
 
       setIsCustomRace(!RACES.includes(characterToEdit.race) && characterToEdit.race !== "");
@@ -1047,7 +1079,7 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
         background: "", alignment: "", hp_max: 10, ac: 10, speed: 30, initiative: 0, hit_dice_total: "1d8",
         proficiency_bonus: 2, str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10,
         armor_prof: {}, weapon_prof: {}, languages: {}, tools_prof: {}, skill_prof: {},
-        feats: [], class_features: [], species_features: [], subclass_features: [],
+        feats: [], class_features: [], species_features: [], subclass_features: [], inventory: [],
 
         spell_save_dc: 0, spell_attack_mod: 0,
         spells: { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [] },
@@ -1057,7 +1089,8 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
           7: {max: 0, curr: 0}, 8: {max: 0, curr: 0}, 9: {max: 0, curr: 0}
         },
 
-        custom_armor: "", custom_weapon: "", custom_language: "", custom_skills: "", custom_tools: "", custom_features: ""
+        custom_armor: "", custom_weapon: "", custom_language: "", custom_skills: "", custom_tools: "", custom_features: "", 
+        custom_armor_stats: { name: "", base: 10, type: "light" }
       });
       setIsCustomRace(false);
       setIsCustomClass(false);
@@ -1174,6 +1207,40 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
     );
   };
 
+// --- INVENTORY HANDLERS ---
+  const handleAddItem = () => {
+    if (!newItem.name) return;
+    setFormData(prev => ({
+      ...prev,
+      inventory: [...prev.inventory, { name: newItem.name, type: newItem.type, id: Date.now() }]
+    }));
+    setNewItem(prev => ({ ...prev, name: "" })); // Reset input but keep type
+  };
+
+  const handleRemoveItem = (id) => {
+    setFormData(prev => ({
+      ...prev,
+      inventory: prev.inventory.filter(item => item.id !== id)
+    }));
+  };
+
+  const handleEquip = (item) => {
+    if (item.type !== "Armor") return;
+
+    // 1. Standard Armor: Just set the dropdown
+    if (ARMOR_TABLE[item.name]) {
+      setFormData(prev => ({ ...prev, equipped_armor: item.name }));
+    } 
+    // 2. Custom Armor: Switch mode and pre-fill name
+    else {
+      setFormData(prev => ({
+        ...prev,
+        equipped_armor: "Custom",
+        custom_armor_stats: { ...prev.custom_armor_stats, name: item.name }
+      }));
+    }
+  };
+
 const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -1205,18 +1272,16 @@ const handleSubmit = async (e) => {
         feats: formData.feats,
         class_features: formData.class_features, 
         species_features: formData.species_features,
-        
-        // --- NEW SPELL DATA ---
-        spells: formData.spells, // Saves the arrays for Levels 0-9
-        slots: formData.slots,   // Saves the slot tracking for Levels 1-9
-        // ----------------------
-
+        spells: formData.spells,
+        slots: formData.slots,  
         custom_armor: formData.custom_armor,
         custom_weapon: formData.custom_weapon,
         custom_language: formData.custom_language,
         custom_skills: formData.custom_skills, 
         custom_tools: formData.custom_tools,
-        custom_features: formData.custom_features 
+        custom_features: formData.custom_features,
+        inventory: formData.inventory,
+        custom_armor_stats: formData.custom_armor_stats
       }
     };
 
@@ -1317,13 +1382,42 @@ const handleSubmit = async (e) => {
 
         {/* Row 2: Equipment Controls (Drives AC) */}
         <div style={{borderTop: "1px solid #eee", paddingTop: "10px"}}>
-          <label style={{fontSize: "0.9em", fontWeight: "bold", marginRight: "10px"}}>Armor:</label>
-          <div style={{display: "flex", gap: "10px", alignItems: "center"}}>
-               <select name="equipped_armor" value={formData.equipped_armor} onChange={handleChange} style={{flex: 1, padding: "5px"}}>
+          <div style={{display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap"}}>
+               <label style={{fontSize: "0.9em", fontWeight: "bold"}}>Armor:</label>
+               <select name="equipped_armor" value={formData.equipped_armor} onChange={handleChange} style={{minWidth: "150px", padding: "5px"}}>
                    <option value="None">None (Unarmored)</option>
                    {Object.keys(ARMOR_TABLE).filter(k => k !== "None").map(a => <option key={a} value={a}>{a} (AC {ARMOR_TABLE[a].base})</option>)}
+                   <option value="Custom" style={{fontWeight: "bold", color: "#673AB7"}}>+ Custom / Magic Armor</option>
                </select>
-               <label style={{fontSize: "0.9em", display: "flex", alignItems: "center", cursor: "pointer"}}>
+
+               {/* Custom Armor Stats Inputs */}
+               {formData.equipped_armor === "Custom" && (
+                 <div style={{display: "flex", gap: "5px", background: "#f3e5f5", padding: "5px", borderRadius: "4px", alignItems: "center"}}>
+                    <input 
+                      placeholder="Name" 
+                      value={formData.custom_armor_stats.name} 
+                      onChange={e => setFormData(prev => ({...prev, custom_armor_stats: {...prev.custom_armor_stats, name: e.target.value}}))}
+                      style={{width: "80px", padding: "3px"}}
+                    />
+                    <input 
+                      type="number" placeholder="AC" 
+                      value={formData.custom_armor_stats.base} 
+                      onChange={e => setFormData(prev => ({...prev, custom_armor_stats: {...prev.custom_armor_stats, base: parseInt(e.target.value)}}))}
+                      style={{width: "40px", padding: "3px"}}
+                    />
+                    <select 
+                      value={formData.custom_armor_stats.type} 
+                      onChange={e => setFormData(prev => ({...prev, custom_armor_stats: {...prev.custom_armor_stats, type: e.target.value}}))}
+                      style={{padding: "3px"}}
+                    >
+                      <option value="light">Light (Full Dex)</option>
+                      <option value="medium">Medium (Max +2)</option>
+                      <option value="heavy">Heavy (No Dex)</option>
+                    </select>
+                 </div>
+               )}
+
+               <label style={{fontSize: "0.9em", display: "flex", alignItems: "center", cursor: "pointer", marginLeft: "10px"}}>
                   <input type="checkbox" name="shield_equipped" checked={formData.shield_equipped} onChange={e => setFormData(prev => ({...prev, shield_equipped: e.target.checked}))} style={{marginRight: "5px"}}/> 
                   +Shield
                </label>
@@ -1461,6 +1555,105 @@ const handleSubmit = async (e) => {
                 {TOOLS_LIST.map(tool => (<label key={tool}><input type="checkbox" name={tool} checked={!!formData.tools_prof[tool]} onChange={(e) => handleCheckboxChange(e, "tools_prof")} /> {tool}</label>))}
             </div>
             <input name="custom_tools" placeholder="Other Tools" value={formData.custom_tools} onChange={handleChange} style={{width: "100%", boxSizing: "border-box", padding: "5px"}} />
+        </div>
+      </fieldset>
+
+      {/* --- INVENTORY --- */}
+      <fieldset style={{ padding: "1rem", border: "1px solid #ccc", marginTop: "1rem" }}>
+        <legend><strong>Inventory</strong></legend>
+        
+        {/* ADD ITEM CONTROLS */}
+        <div style={{ display: "flex", gap: "10px", marginBottom: "15px", flexWrap: "wrap", alignItems: "center" }}>
+          <select 
+            value={newItem.type} 
+            onChange={e => setNewItem({ type: e.target.value, name: "", isCustom: false })}
+            style={{ padding: "5px" }}
+          >
+            <option value="Weapon">Weapon</option>
+            <option value="Armor">Armor</option>
+            <option value="Pack">Equipment Pack</option>
+            <option value="Custom">Other</option>
+          </select>
+
+          {/* DYNAMIC INPUTS */}
+          {newItem.isCustom || newItem.type === "Custom" ? (
+             <div style={{display:"flex", flex: 1, gap: "5px"}}>
+                <input 
+                  placeholder={`Custom ${newItem.type} Name`} 
+                  value={newItem.name} 
+                  onChange={e => setNewItem(prev => ({ ...prev, name: e.target.value }))} 
+                  style={{ flex: 1, padding: "5px" }}
+                  autoFocus
+                />
+                {newItem.type !== "Custom" && <button type="button" onClick={() => setNewItem(prev => ({...prev, isCustom: false, name: ""}))} style={{fontSize: "0.8em"}}>Back</button>}
+             </div>
+          ) : (
+             <>
+               {newItem.type === "Weapon" && (
+                 <select value={newItem.name} onChange={e => e.target.value === "CUSTOM" ? setNewItem(prev => ({...prev, isCustom: true, name: ""})) : setNewItem(prev => ({ ...prev, name: e.target.value }))} style={{ flex: 1, padding: "5px" }}>
+                   <option value="">-- Select Weapon --</option>
+                   <optgroup label="Simple Weapons">{SIMPLE_WEAPONS.map(w => <option key={w} value={w}>{w}</option>)}</optgroup>
+                   <optgroup label="Martial Weapons">{MARTIAL_WEAPONS.map(w => <option key={w} value={w}>{w}</option>)}</optgroup>
+                   <option value="CUSTOM" style={{fontWeight: "bold"}}>+ Custom Weapon...</option>
+                 </select>
+               )}
+               
+               {newItem.type === "Armor" && (
+                 <select value={newItem.name} onChange={e => e.target.value === "CUSTOM" ? setNewItem(prev => ({...prev, isCustom: true, name: ""})) : setNewItem(prev => ({ ...prev, name: e.target.value }))} style={{ flex: 1, padding: "5px" }}>
+                   <option value="">-- Select Armor --</option>
+                   {Object.keys(ARMOR_TABLE).filter(a => a !== "None").map(a => <option key={a} value={a}>{a}</option>)}
+                   <option value="CUSTOM" style={{fontWeight: "bold"}}>+ Custom Armor...</option>
+                 </select>
+               )}
+
+               {newItem.type === "Pack" && (
+                 <select value={newItem.name} onChange={e => e.target.value === "CUSTOM" ? setNewItem(prev => ({...prev, isCustom: true, name: ""})) : setNewItem(prev => ({ ...prev, name: e.target.value }))} style={{ flex: 1, padding: "5px" }}>
+                   <option value="">-- Select Pack --</option>
+                   {PACKS_LIST.map(p => <option key={p} value={p}>{p}</option>)}
+                   <option value="CUSTOM" style={{fontWeight: "bold"}}>+ Custom Pack...</option>
+                 </select>
+               )}
+             </>
+          )}
+
+          <button type="button" onClick={handleAddItem} style={{ background: "#4CAF50", color: "white", border: "none", padding: "5px 15px", cursor: "pointer", borderRadius: "4px" }}>Add</button>
+        </div>
+
+        {/* INVENTORY LIST (Updated with Equip Button) */}
+        <div style={{ background: "#f9f9f9", padding: "10px", borderRadius: "5px", border: "1px solid #eee", minHeight: "50px" }}>
+          {formData.inventory.length === 0 ? <span style={{color: "#888", fontStyle: "italic"}}>Inventory is empty...</span> : null}
+          
+          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+            {formData.inventory.map((item) => {
+              // Check if item matches current equipment
+              const isEquipped = 
+                (formData.equipped_armor === item.name) || 
+                (formData.equipped_armor === "Custom" && formData.custom_armor_stats.name === item.name);
+
+              return (
+                <li key={item.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 0", borderBottom: "1px solid #eee" }}>
+                  <span>
+                    <strong>{item.name}</strong> <span style={{ fontSize: "0.8em", color: "#666", marginLeft: "5px" }}>({item.type})</span>
+                    {/* Badge */}
+                    {isEquipped && <span style={{marginLeft: "10px", fontSize: "0.8em", color: "#2E7D32", fontWeight: "bold", background: "#E8F5E9", padding: "2px 6px", borderRadius: "4px"}}>EQUIPPED</span>}
+                  </span>
+                  
+                  <div>
+                    {/* BUTTON: Only show if it's Armor AND NOT equipped */}
+                    {item.type === "Armor" && !isEquipped && (
+                      <button type="button" onClick={() => handleEquip(item)} style={{ marginRight: "10px", fontSize: "0.8em", cursor: "pointer", background: "#e3f2fd", border: "1px solid #2196F3", color: "#0d47a1", borderRadius: "3px", padding: "2px 8px" }}>
+                        Equip
+                      </button>
+                    )}
+                    
+                    <button type="button" onClick={() => handleRemoveItem(item.id)} style={{ color: "red", background: "none", border: "none", cursor: "pointer", fontWeight: "bold" }}>
+                      ✕
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
         </div>
       </fieldset>
 
