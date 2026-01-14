@@ -39,6 +39,62 @@ const SUBCLASS_OPTIONS = {
   "Wizard": ["School of Abjuration", "School of Conjuration", "School of Divination", "School of Enchantment", "School of Evocation", "School of Illusion", "School of Necromancy", "School of Transmutation"]
 };
 
+const WEAPON_TABLE = {
+  // Simple Melee
+  "Club": { damage: "1d4", type: "Bludgeoning", props: "Light" },
+  "Dagger": { damage: "1d4", type: "Piercing", props: "Finesse, Light, Thrown" },
+  "Greatclub": { damage: "1d8", type: "Bludgeoning", props: "Two-handed" },
+  "Handaxe": { damage: "1d6", type: "Slashing", props: "Light, Thrown" },
+  "Javelin": { damage: "1d6", type: "Piercing", props: "Thrown" },
+  "Light Hammer": { damage: "1d4", type: "Bludgeoning", props: "Light, Thrown" },
+  "Mace": { damage: "1d6", type: "Bludgeoning", props: "" },
+  "Quarterstaff": { damage: "1d6", type: "Bludgeoning", props: "Versatile (1d8)" },
+  "Sickle": { damage: "1d4", type: "Slashing", props: "Light" },
+  "Spear": { damage: "1d6", type: "Piercing", props: "Thrown, Versatile (1d8)" },
+  
+  // Simple Ranged
+  "Crossbow, Light": { damage: "1d8", type: "Piercing", props: "Range, Loading, Two-handed" },
+  "Dart": { damage: "1d4", type: "Piercing", props: "Finesse, Thrown" },
+  "Shortbow": { damage: "1d6", type: "Piercing", props: "Range, Two-handed" },
+  "Sling": { damage: "1d4", type: "Bludgeoning", props: "Range" },
+
+  // Martial Melee
+  "Battleaxe": { damage: "1d8", type: "Slashing", props: "Versatile (1d10)" },
+  "Flail": { damage: "1d8", type: "Bludgeoning", props: "" },
+  "Glaive": { damage: "1d10", type: "Slashing", props: "Heavy, Reach, Two-handed" },
+  "Greataxe": { damage: "1d12", type: "Slashing", props: "Heavy, Two-handed" },
+  "Greatsword": { damage: "2d6", type: "Slashing", props: "Heavy, Two-handed" },
+  "Halberd": { damage: "1d10", type: "Slashing", props: "Heavy, Reach, Two-handed" },
+  "Lance": { damage: "1d12", type: "Piercing", props: "Reach, Special" },
+  "Longsword": { damage: "1d8", type: "Slashing", props: "Versatile (1d10)" },
+  "Maul": { damage: "2d6", type: "Bludgeoning", props: "Heavy, Two-handed" },
+  "Morningstar": { damage: "1d8", type: "Piercing", props: "" },
+  "Pike": { damage: "1d10", type: "Piercing", props: "Heavy, Reach, Two-handed" },
+  "Rapier": { damage: "1d8", type: "Piercing", props: "Finesse" },
+  "Scimitar": { damage: "1d6", type: "Slashing", props: "Finesse, Light" },
+  "Shortsword": { damage: "1d6", type: "Piercing", props: "Finesse, Light" },
+  "Trident": { damage: "1d6", type: "Piercing", props: "Thrown, Versatile (1d8)" },
+  "War Pick": { damage: "1d8", type: "Piercing", props: "" },
+  "Warhammer": { damage: "1d8", type: "Bludgeoning", props: "Versatile (1d10)" },
+  "Whip": { damage: "1d4", type: "Slashing", props: "Finesse, Reach" },
+
+  // Martial Ranged
+  "Blowgun": { damage: "1", type: "Piercing", props: "Range, Loading" },
+  "Crossbow, Hand": { damage: "1d6", type: "Piercing", props: "Range, Light, Loading" },
+  "Crossbow, Heavy": { damage: "1d10", type: "Piercing", props: "Range, Heavy, Loading, Two-handed" },
+  "Longbow": { damage: "1d8", type: "Piercing", props: "Range, Heavy, Two-handed" },
+  "Net": { damage: "-", type: "Special", props: "Thrown, Special" }
+};
+
+const WEAPON_PROPERTIES = [
+  "Finesse", "Heavy", "Light", "Loading", "Range", "Reach", "Special", "Thrown", "Two-handed", "Versatile"
+];
+
+const DAMAGE_TYPES = [
+  "Bludgeoning", "Piercing", "Slashing",
+  "Acid", "Cold", "Fire", "Force", "Lightning", "Necrotic", "Poison", "Psychic", "Radiant", "Thunder"
+];
+
 const ARMOR_TABLE = {
   "None": { base: 10, type: "none" },
   "Padded": { base: 11, type: "light", stealth_dis: true },
@@ -830,10 +886,20 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
   const [tempSpells, setTempSpells] = useState({0:"", 1:"", 2:"", 3:"", 4:"", 5:"", 6:"", 7:"", 8:"", 9:""});
   const subSpellData = SUBCLASS_SPELL_DATA[formData.subclass];
   const classData = CLASS_DATA[formData.char_class];
+  // Updated state for Tag System
   const [newItem, setNewItem] = useState({ 
     type: "Weapon", name: "", isCustom: false, 
-    ac: 10, armorType: "light", stealth: false,           // Armor Params
-    damage: "1d6", dmgType: "Slashing", properties: ""    // Weapon Params
+    ac: 10, armorType: "light", stealth: false,
+    
+    //Weapon Categories
+    wpnCategory: "Simple",  // Simple vs Martial
+    wpnRange: "Melee",      // Melee vs Ranged
+
+    // Multi-Damage System: List of objects { dice: "1d8", type: "Slashing" }
+    damageList: [], 
+    tempDice: "", tempType: "", // Temp inputs for adding a damage pair
+
+    properties: [], tempProp: "" // Properties Tags
   });
 
   // Caster Type: Check Subclass first ("third"), then Class ("full"/"half"), otherwise "none"
@@ -1159,6 +1225,52 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
       spells: { ...prev.spells, [lvl]: prev.spells[lvl].filter(s => s !== spellName) }
     }));
   };
+
+  // --- HELPER: CALCULATE ATTACK STATS ---
+  const getAttackData = (item) => {
+    const stats = item.stats || WEAPON_TABLE[item.name] || {};
+    
+    // 1. Get Modifiers
+    const strMod = calcMod(formData.str);
+    const dexMod = calcMod(formData.dex);
+    const prof = formData.proficiency_bonus;
+    
+    // 2. Determine Stat (Str vs Dex)
+    const props = (stats.properties || stats.props || "").toLowerCase();
+    const isFinesse = props.includes("finesse");
+    const isRanged = (stats.rangeType === "Ranged") || props.includes("range") || ["shortbow", "longbow", "crossbow", "blowgun", "sling", "dart"].some(n => item.name.toLowerCase().includes(n));
+    
+    let mod = strMod;
+    if (isFinesse) mod = Math.max(strMod, dexMod);
+    else if (isRanged && !props.includes("thrown")) mod = dexMod;
+
+    // 3. Construct Damage String
+    let damageString = "";
+    
+    // A. If using new Multi-Damage List
+    if (stats.damageList && stats.damageList.length > 0) {
+      damageString = stats.damageList.map((d, i) => {
+        // Add modifier only to the first damage component
+        const modifier = (i === 0 && mod !== 0) ? (mod > 0 ? `+${mod}` : mod) : "";
+        return `${d.dice}${modifier} ${d.type}`;
+      }).join(" + ");
+    } 
+    // B. Fallback for Standard/Old items
+    else {
+      const baseDmg = stats.damage || "?";
+      const modifier = mod !== 0 ? (mod > 0 ? `+${mod}` : mod) : "";
+      damageString = `${baseDmg}${modifier} ${stats.type || stats.dmgType || ""}`;
+    }
+
+    const totalAtk = mod + prof;
+
+    return {
+      atk: totalAtk >= 0 ? `+${totalAtk}` : totalAtk,
+      dmg: damageString,
+      // (Type is now embedded in the damage string)
+      type: "" 
+    };
+  };
   
   // Helper to render a row for Level X spells
   const renderSpellRow = (lvl) => {
@@ -1204,8 +1316,41 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
       </div>
     );
   };
+  
+  // --- TAG HANDLERS ---
+  const addTag = (field, value, tempField) => {
+    if (!value) return;
+    setNewItem(prev => ({
+      ...prev,
+      [field]: prev[field].includes(value) ? prev[field] : [...prev[field], value],
+      [tempField]: "" // Clear the text input after adding
+    }));
+  };
 
-// --- INVENTORY HANDLERS ---
+  const removeTag = (field, value) => {
+    setNewItem(prev => ({
+      ...prev,
+      [field]: prev[field].filter(t => t !== value)
+    }));
+  };
+
+  // --- INVENTORY HANDLERS ---
+  const addDamagePair = () => {
+    if (!newItem.tempDice || !newItem.tempType) return;
+    setNewItem(prev => ({
+      ...prev,
+      damageList: [...prev.damageList, { dice: prev.tempDice, type: prev.tempType }],
+      tempDice: "", tempType: "" // Clear inputs
+    }));
+  };
+
+  const removeDamagePair = (index) => {
+    setNewItem(prev => ({
+      ...prev,
+      damageList: prev.damageList.filter((_, i) => i !== index)
+    }));
+  };
+
   const handleAddItem = () => {
     if (!newItem.name) return;
     
@@ -1224,12 +1369,19 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
       };
     }
     
-    // 2. Capture Custom Weapon Stats (NEW)
+    // 2. Capture Custom Weapon Stats 
     if (newItem.type === "Weapon" && newItem.isCustom) {
       itemData.stats = {
-        damage: newItem.damage,
-        dmgType: newItem.dmgType,
-        properties: newItem.properties
+        category: newItem.wpnCategory, 
+        rangeType: newItem.wpnRange,   
+        
+        // Save the complex damage list directly
+        damageList: newItem.damageList, 
+        
+        // Also construct a simple string for fallback displays
+        damage: newItem.damageList.map(d => `${d.dice} ${d.type}`).join(" + "), 
+        
+        properties: newItem.properties.join(", ")
       };
     }
 
@@ -1238,11 +1390,13 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
       inventory: [...prev.inventory, itemData]
     }));
     
-    // Reset form to defaults
+    // Reset form
     setNewItem({ 
       type: "Weapon", name: "", isCustom: false, 
       ac: 10, armorType: "light", stealth: false,
-      damage: "1d6", dmgType: "Slashing", properties: "" 
+      wpnCategory: "Simple", wpnRange: "Melee",
+      damageList: [], tempDice: "", tempType: "",
+      properties: [], tempProp: ""
     });
   };
 
@@ -1429,6 +1583,53 @@ const handleSubmit = async (e) => {
         </div>
       </fieldset>
 
+      {/* --- COMBAT: ATTACKS & SPELLCASTING --- */}
+      <fieldset style={{ padding: "1rem", border: "1px solid #ccc", marginTop: "1rem", background: "#fff" }}>
+        <legend><strong>Attacks & Spellcasting</strong></legend>
+        
+        <div style={{border: "1px solid #ccc", borderRadius: "4px", overflow: "hidden"}}>
+          <table style={{width: "100%", borderCollapse: "collapse", fontSize: "0.9em"}}>
+            <thead>
+              <tr style={{background: "#eee", textAlign: "left"}}>
+                <th style={{padding: "8px", borderBottom: "1px solid #ccc"}}>Name</th>
+                <th style={{padding: "8px", borderBottom: "1px solid #ccc", width: "60px", textAlign:"center"}}>Atk</th>
+                <th style={{padding: "8px", borderBottom: "1px solid #ccc"}}>Damage / Type</th>
+                <th style={{padding: "8px", borderBottom: "1px solid #ccc"}}>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {/* 1. AUTO-GENERATED WEAPONS FROM INVENTORY */}
+              {formData.inventory.filter(i => i.type === "Weapon").map(item => {
+                const data = getAttackData(item);
+                return (
+                  <tr key={item.id} style={{borderBottom: "1px solid #eee"}}>
+                    <td style={{padding: "8px", fontWeight: "bold"}}>{item.name}</td>
+                    <td style={{padding: "8px", textAlign:"center", background: "#f9f9f9", fontWeight: "bold"}}>{data.atk}</td>
+                    <td style={{padding: "8px"}}>{data.dmg} {data.type}</td>
+                    <td style={{padding: "8px", color: "#666", fontStyle: "italic"}}>{item.stats?.properties}</td>
+                  </tr>
+                );
+              })}
+
+              {/* 2. MANUAL ATTACK ROW (For Cantrips/Special) */}
+              {/* We show a blank row user can type in, or placeholder text if empty */}
+              {formData.inventory.filter(i => i.type === "Weapon").length === 0 && (
+                 <tr>
+                   <td colSpan="4" style={{padding: "15px", textAlign: "center", color: "#888", fontStyle: "italic"}}>
+                     Add weapons to your Inventory to see them listed here.
+                   </td>
+                 </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+        
+        {/* Simple Manual Entry for things like Fire Bolt */}
+        <div style={{marginTop: "10px", fontSize: "0.85em", color: "#666"}}>
+           <strong>Tip:</strong> Weapons added to Inventory appear above automatically.
+        </div>
+      </fieldset>
+
       {/* --- SPELLCASTING --- */}
       {isCaster && (
         <fieldset style={{ padding: "1rem", border: "1px solid #673AB7", background: "#fff", marginTop: "1rem" }}>
@@ -1606,14 +1807,61 @@ const handleSubmit = async (e) => {
 
                 {/* CUSTOM WEAPON PARAMS */}
                 {newItem.type === "Weapon" && (
-                   <>
-                     <input placeholder="Dmg (1d8)" value={newItem.damage} onChange={e => setNewItem(prev => ({ ...prev, damage: e.target.value }))} style={{width: "60px", padding: "5px"}} />
-                     <select value={newItem.dmgType} onChange={e => setNewItem(prev => ({ ...prev, dmgType: e.target.value }))} style={{padding: "5px"}}>
-                       <option>Bludgeoning</option><option>Piercing</option><option>Slashing</option>
-                       <option>Fire</option><option>Cold</option><option>Lightning</option><option>Psychic</option><option>Radiant</option><option>Necrotic</option><option>Force</option>
-                     </select>
-                     <input placeholder="Props (Finesse, etc)" value={newItem.properties} onChange={e => setNewItem(prev => ({ ...prev, properties: e.target.value }))} style={{width: "100px", padding: "5px"}} />
-                   </>
+                   <div style={{display: "flex", flexDirection: "column", gap: "5px", borderLeft: "2px solid #ddd", paddingLeft: "8px"}}>
+                     
+                     {/* 1. Category & Range Selectors */}
+                     <div style={{display: "flex", gap: "5px"}}>
+                        <select value={newItem.wpnCategory} onChange={e => setNewItem(prev => ({...prev, wpnCategory: e.target.value}))} style={{padding: "3px", fontSize: "0.9em"}}>
+                          <option value="Simple">Simple</option>
+                          <option value="Martial">Martial</option>
+                        </select>
+                        <select value={newItem.wpnRange} onChange={e => setNewItem(prev => ({...prev, wpnRange: e.target.value}))} style={{padding: "3px", fontSize: "0.9em"}}>
+                          <option value="Melee">Melee</option>
+                          <option value="Ranged">Ranged</option>
+                        </select>
+                     </div>
+
+                     {/* 2. Multi-Damage Manager */}
+                     <div style={{display: "flex", flexDirection: "column", gap: "3px"}}>
+                        <div style={{display: "flex", gap: "3px"}}>
+                           <input placeholder="Dice (1d8)" value={newItem.tempDice} onChange={e => setNewItem(prev => ({ ...prev, tempDice: e.target.value }))} style={{width: "60px", padding: "3px"}} />
+                           <select value={newItem.tempType} onChange={e => setNewItem(prev => ({ ...prev, tempType: e.target.value }))} style={{padding: "3px", width: "90px"}}>
+                              <option value="">Type...</option>
+                              {DAMAGE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                           </select>
+                           <button type="button" onClick={addDamagePair} style={{fontSize: "0.8em", cursor: "pointer", fontWeight: "bold"}}>+</button>
+                        </div>
+                        {/* List of Added Damage Pairs */}
+                        <div style={{display: "flex", flexWrap: "wrap", gap: "3px"}}>
+                          {newItem.damageList.map((pair, idx) => (
+                             <span key={idx} style={{background: "#ffebee", color: "#c62828", padding: "2px 6px", borderRadius: "4px", fontSize: "0.8em", border: "1px solid #ffcdd2", display: "flex", alignItems: "center"}}>
+                                {pair.dice} {pair.type}
+                                <span onClick={() => removeDamagePair(idx)} style={{marginLeft: "4px", cursor: "pointer", fontWeight: "bold"}}>×</span>
+                             </span>
+                          ))}
+                        </div>
+                     </div>
+
+                     {/* 3. Properties Manager (Same as before) */}
+                     <div style={{display: "flex", flexWrap: "wrap", gap: "3px", maxWidth: "300px"}}>
+                        <select value="" onChange={(e) => addTag("properties", e.target.value, "tempProp")} style={{padding: "3px", width: "100px"}}>
+                           <option value="" disabled>+ Add Prop</option>
+                           {WEAPON_PROPERTIES.map(p => <option key={p} value={p}>{p}</option>)}
+                        </select>
+                        <div style={{display: "flex"}}>
+                           <input placeholder="Custom..." value={newItem.tempProp} onChange={e => setNewItem(prev => ({...prev, tempProp: e.target.value}))} style={{width: "70px", padding: "3px"}} />
+                           <button type="button" onClick={() => addTag("properties", newItem.tempProp, "tempProp")} style={{fontSize: "0.8em"}}>+</button>
+                        </div>
+                        {/* Property Tags */}
+                        <div style={{display: "flex", flexWrap: "wrap", gap: "3px"}}>
+                          {newItem.properties.map(p => (
+                            <span key={p} style={{background: "#e3f2fd", color: "#1565c0", padding: "2px 6px", borderRadius: "4px", fontSize: "0.8em", display: "flex", alignItems: "center", border: "1px solid #bbdefb"}}>
+                              {p} <span onClick={() => removeTag("properties", p)} style={{marginLeft: "4px", cursor: "pointer", fontWeight: "bold"}}>×</span>
+                            </span>
+                          ))}
+                        </div>
+                     </div>
+                   </div>
                 )}
 
                 {newItem.type !== "Custom" && <button type="button" onClick={() => setNewItem(prev => ({...prev, isCustom: false, name: ""}))} style={{fontSize: "0.8em"}}>Back</button>}
