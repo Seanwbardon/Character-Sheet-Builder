@@ -107,6 +107,28 @@ const SLOT_TABLE = {
     [4,3,3,3,2,0,0,0,0], 
     [4,3,3,3,2,0,0,0,0]  // Lvl 20
   ],
+  third: [ // Eldritch Knight, Arcane Trickster
+    [0,0,0,0,0,0,0,0,0], // Lvl 1
+    [0,0,0,0,0,0,0,0,0], 
+    [2,0,0,0,0,0,0,0,0], // Lvl 3 (Start)
+    [3,0,0,0,0,0,0,0,0], 
+    [3,0,0,0,0,0,0,0,0], 
+    [3,0,0,0,0,0,0,0,0], 
+    [4,2,0,0,0,0,0,0,0], // Lvl 7
+    [4,2,0,0,0,0,0,0,0], 
+    [4,2,0,0,0,0,0,0,0], 
+    [4,3,0,0,0,0,0,0,0], // Lvl 10
+    [4,3,0,0,0,0,0,0,0], 
+    [4,3,0,0,0,0,0,0,0], 
+    [4,3,2,0,0,0,0,0,0], // Lvl 13
+    [4,3,2,0,0,0,0,0,0], 
+    [4,3,2,0,0,0,0,0,0], 
+    [4,3,3,0,0,0,0,0,0], // Lvl 16
+    [4,3,3,0,0,0,0,0,0], 
+    [4,3,3,0,0,0,0,0,0], 
+    [4,3,3,1,0,0,0,0,0], // Lvl 19
+    [4,3,3,1,0,0,0,0,0] 
+  ],
   pact: [ // Warlock
     [1,0,0,0,0], // Lvl 1
     [2,0,0,0,0], 
@@ -134,6 +156,11 @@ const SLOT_TABLE = {
 const SPELL_ABILITY = {
   "Artificer": "int", "Bard": "cha", "Cleric": "wis", "Druid": "wis", "Paladin": "cha",
   "Psion": "int", "Ranger": "wis", "Sorcerer": "cha", "Warlock": "cha", "Wizard": "int"
+};
+
+const SUBCLASS_SPELL_DATA = {
+  "Eldritch Knight": { type: "third", ability: "int", list: "Wizard" },
+  "Arcane Trickster": { type: "third", ability: "int", list: "Wizard" }
 };
 
 // MASTER SPELL DATABASE (SRD Levels 0-9)
@@ -741,10 +768,18 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
   const [isCustomClass, setIsCustomClass] = useState(false);
   const [isCustomSubclass, setIsCustomSubclass] = useState(false);
   const [tempSpells, setTempSpells] = useState({0:"", 1:"", 2:"", 3:"", 4:"", 5:"", 6:"", 7:"", 8:"", 9:""});
-  // Check if class is a caster (not "none") and not undefined
-  const isCaster = CLASS_DATA[formData.char_class] && CLASS_DATA[formData.char_class].caster_type !== "none";
-  // Get the casting stat (default to 'int' to prevent crash)
-  const castingStat = SPELL_ABILITY[formData.char_class] || "int";
+  const subSpellData = SUBCLASS_SPELL_DATA[formData.subclass];
+  const classData = CLASS_DATA[formData.char_class];
+
+  // Caster Type: Check Subclass first ("third"), then Class ("full"/"half"), otherwise "none"
+  const casterType = subSpellData ? subSpellData.type : (classData?.caster_type || "none");
+  const isCaster = casterType !== "none";
+
+  // Casting Stat: Check Subclass first, then Class, default to Int
+  const castingStat = subSpellData ? subSpellData.ability : (SPELL_ABILITY[formData.char_class] || "int");
+
+  // Spell List Source: Eldritch Knights use "Wizard" list, etc.
+  const spellListSource = subSpellData ? subSpellData.list : formData.char_class;
 
   // --- AUTOMATION: Hit Dice ---
   useEffect(() => {
@@ -788,7 +823,7 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
 
   // --- AUTOMATION: Spell Slots ---
   useEffect(() => {
-    const type = CLASS_DATA[formData.char_class]?.caster_type;
+    const type = casterType;
     const lvl = formData.level;
 
     if (type && type !== "none" && type !== "psion") {
@@ -1032,7 +1067,8 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
              {/* Note: Ensure SPELL_LISTS is defined in your file, or remove this select if you don't use it */}
              <select onChange={(e) => { addSpell(lvl, e.target.value); e.target.value = ""; }} style={{flex: 1}}>
                  <option value="">+ Add {lvl === 0 ? "Cantrip" : "Spell"}</option>
-                 {SPELL_LISTS[formData.char_class]?.[lvl]?.map(s => <option key={s} value={s}>{s}</option>)}
+                 {/* USE spellListSource HERE: */}
+                 {SPELL_LISTS[spellListSource]?.[lvl]?.map(s => <option key={s} value={s}>{s}</option>)}
              </select>
              
              <input placeholder="Custom..." value={tempSpells[lvl]} onChange={e => setTempSpells(prev => ({...prev, [lvl]: e.target.value}))} onKeyDown={e => {if(e.key === 'Enter'){e.preventDefault(); addSpell(lvl, tempSpells[lvl]); setTempSpells(prev => ({...prev, [lvl]: ""}));}}} style={{width: "80px"}} />
