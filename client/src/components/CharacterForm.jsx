@@ -827,8 +827,6 @@ const FEATS_DATA = [
   { name: "War Caster", category: "General", desc: "+1 Int/Wis/Cha. Adv Con saves. OA spells." },
 ];
 
-
-
 const ARMOR_OPTIONS = ["Light Armor", "Medium Armor", "Heavy Armor", "Shields"];
 const WEAPON_OPTIONS = ["Simple Weapons", "Martial Weapons"];
 const LANGUAGE_OPTIONS = ["Common", "Dwarvish", "Elvish", "Giant", "Gnomish", "Goblin", "Halfling", "Orc", "Abyssal", "Celestial", "Draconic", "Infernal", "Primordial", "Sylvan", "Undercommon"];
@@ -1482,17 +1480,17 @@ const handleSubmit = async (e) => {
       {/* --- IDENTITY --- */}
       <fieldset style={{ padding: "1rem", border: "1px solid #ccc" }}>
         <legend><strong>Identity</strong></legend>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-            <input name="name" placeholder="Name" value={formData.name} onChange={handleChange} required />
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", alignItems: "center" }}>
             
-            {/* Race Select (Existing Logic) */}
+            {/* Name & Species */}
+            <input name="name" placeholder="Name" value={formData.name} onChange={handleChange} required />
             {isCustomRace ? (
                <div style={{display: "flex", gap: "5px"}}><input name="race" placeholder="Species..." value={formData.race} onChange={handleChange} autoFocus required style={{flex: 1}}/><button type="button" onClick={() => setIsCustomRace(false)}>Back</button></div>
             ) : (
               <select name="race" value={RACES.includes(formData.race) ? formData.race : ""} onChange={(e) => handleDropdownChange(e, "race", setIsCustomRace)} required><option value="" disabled>Species</option>{RACES.map(r => <option key={r} value={r}>{r}</option>)}<option value="CUSTOM_OPTION">+ Custom...</option></select>
             )}
 
-            {/* Class Select (Updates to reset subclass on change) */}
+            {/* Class */}
             {isCustomClass ? (
                <div style={{display: "flex", gap: "5px"}}><input name="char_class" placeholder="Class..." value={formData.char_class} onChange={handleChange} autoFocus required style={{flex: 1}}/><button type="button" onClick={() => setIsCustomClass(false)}>Back</button></div>
             ) : (
@@ -1503,7 +1501,7 @@ const handleSubmit = async (e) => {
               </select>
             )}
 
-            {/* NEW: Subclass Select */}
+            {/* Subclass (Spans Full Width) */}
             {formData.char_class && !isCustomClass && (
               isCustomSubclass ? (
                 <div style={{display: "flex", gap: "5px", gridColumn: "span 2"}}>
@@ -1519,7 +1517,17 @@ const handleSubmit = async (e) => {
               )
             )}
 
-            <label>Level: <input type="number" name="level" value={formData.level} onChange={handleChange} min="1" max="20" style={{width: "60px"}} /></label>
+            {/* Level (Left) & Proficiency Bonus (Right) */}
+            <div>
+               <label style={{fontWeight: "bold", color: "#444"}}>Level: </label>
+               <input type="number" name="level" value={formData.level} onChange={handleChange} min="1" max="20" style={{width: "60px", padding: "5px", marginLeft: "5px"}} />
+            </div>
+
+            <div style={{background: "#E8F5E9", padding: "5px 10px", borderRadius: "4px", textAlign: "center", border: "1px solid #C8E6C9"}}>
+                <span style={{fontSize: "0.9em", color: "#2E7D32", textTransform: "uppercase", letterSpacing: "1px"}}>Proficiency: </span>
+                <strong style={{fontSize: "1.2em", color: "#1B5E20", marginLeft: "5px"}}>+{formData.proficiency_bonus}</strong>
+            </div>
+
         </div>
       </fieldset>
 
