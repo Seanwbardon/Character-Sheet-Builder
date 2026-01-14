@@ -5,20 +5,20 @@ const RACES = ["Human", "Elf", "Dwarf", "Halfling", "Orc", "Tiefling", "Gnome", 
 
 // Map Classes to their Hit Die size
 const CLASS_DATA = {
-  "Artificer": { hit_die: "d8", caster_type: "half_up" }, 
-  "Barbarian": { hit_die: "d12", caster_type: "none" },
-  "Bard": { hit_die: "d8", caster_type: "full" },
-  "Cleric": { hit_die: "d8", caster_type: "full" },
-  "Druid": { hit_die: "d8", caster_type: "full" },
-  "Fighter": { hit_die: "d10", caster_type: "none" },
-  "Monk": { hit_die: "d8", caster_type: "none" },
-  "Paladin": { hit_die: "d10", caster_type: "half" },
-  "Psion": { hit_die: "d6", caster_type: "psion" }, 
-  "Ranger": { hit_die: "d10", caster_type: "half" },
-  "Rogue": { hit_die: "d8", caster_type: "none" },
-  "Sorcerer": { hit_die: "d6", caster_type: "full" },
-  "Warlock": { hit_die: "d8", caster_type: "pact" },
-  "Wizard": { hit_die: "d6", caster_type: "full" }
+  "Artificer": { hit_die: 8, caster_type: "half_up", saves: ["con", "int"] }, 
+  "Barbarian": { hit_die: 12, caster_type: "none", saves: ["str", "con"] },
+  "Bard": { hit_die: 8, caster_type: "full", saves: ["dex", "cha"] },
+  "Cleric": { hit_die: 8, caster_type: "full", saves: ["wis", "cha"] },
+  "Druid": { hit_die: 8, caster_type: "full", saves: ["int", "wis"] },
+  "Fighter": { hit_die: 10, caster_type: "none", saves: ["str", "con"] },
+  "Monk": { hit_die: 8, caster_type: "none", saves: ["str", "dex"] },
+  "Paladin": { hit_die: 10, caster_type: "half", saves: ["wis", "cha"] },
+  "Psion": { hit_die: 6, caster_type: "psion", saves: ["int", "wis"] }, 
+  "Ranger": { hit_die: 10, caster_type: "half", saves: ["str", "dex"] },
+  "Rogue": { hit_die: 8, caster_type: "none", saves: ["dex", "int"] },
+  "Sorcerer": { hit_die: 6, caster_type: "full", saves: ["con", "cha"] },
+  "Warlock": { hit_die: 8, caster_type: "pact", saves: ["wis", "cha"] },
+  "Wizard": { hit_die: 6, caster_type: "full", saves: ["int", "wis"] }
 };
 
 // --- SUBCLASS OPTIONS (Names Only) ---
@@ -37,6 +37,40 @@ const SUBCLASS_OPTIONS = {
   "Sorcerer": ["Draconic Bloodline", "Wild Magic"],
   "Warlock": ["The Archfey", "The Fiend", "The Great Old One"],
   "Wizard": ["School of Abjuration", "School of Conjuration", "School of Divination", "School of Enchantment", "School of Evocation", "School of Illusion", "School of Necromancy", "School of Transmutation"]
+};
+
+const ARMOR_TABLE = {
+  "None": { base: 10, type: "none" },
+  "Padded": { base: 11, type: "light", stealth_dis: true },
+  "Leather": { base: 11, type: "light" },
+  "Studded Leather": { base: 12, type: "light" },
+  "Hide": { base: 12, type: "medium" },
+  "Chain Shirt": { base: 13, type: "medium" },
+  "Scale Mail": { base: 14, type: "medium", stealth_dis: true },
+  "Breastplate": { base: 14, type: "medium" },
+  "Half Plate": { base: 15, type: "medium", stealth_dis: true },
+  "Ring Mail": { base: 14, type: "heavy", stealth_dis: true },
+  "Chain Mail": { base: 16, type: "heavy", stealth_dis: true, str_req: 13 },
+  "Splint": { base: 17, type: "heavy", stealth_dis: true, str_req: 15 },
+  "Plate": { base: 18, type: "heavy", stealth_dis: true, str_req: 15 }
+};
+
+// --- BACKGROUNDS (Origins - Ability Scores & Skills) ---
+// Simplified list for 2024 Origins logic
+const BACKGROUNDS = {
+  "Acolyte": { stats: ["wis", "int"], skills: ["Insight", "Religion"] },
+  "Charlatan": { stats: ["cha", "dex"], skills: ["Deception", "Sleight of Hand"] },
+  "Criminal": { stats: ["dex", "int"], skills: ["Stealth", "Thieves' Tools"] },
+  "Entertainer": { stats: ["cha", "dex"], skills: ["Acrobatics", "Performance"] },
+  "Folk Hero": { stats: ["wis", "str"], skills: ["Animal Handling", "Survival"] },
+  "Guild Artisan": { stats: ["int", "cha"], skills: ["Insight", "Persuasion"] },
+  "Hermit": { stats: ["wis", "int"], skills: ["Medicine", "Religion"] },
+  "Noble": { stats: ["cha", "int"], skills: ["History", "Persuasion"] },
+  "Outlander": { stats: ["str", "wis"], skills: ["Athletics", "Survival"] },
+  "Sage": { stats: ["int", "wis"], skills: ["Arcana", "History"] },
+  "Sailor": { stats: ["dex", "wis"], skills: ["Athletics", "Perception"] },
+  "Soldier": { stats: ["str", "con"], skills: ["Athletics", "Intimidation"] },
+  "Urchin": { stats: ["dex", "wis"], skills: ["Sleight of Hand", "Stealth"] }
 };
 
 // SPELL SLOT TABLES (Corrected: Index 0 = Level 1)
@@ -724,6 +758,8 @@ const FEATS_DATA = [
   { name: "War Caster", category: "General", desc: "+1 Int/Wis/Cha. Adv Con saves. OA spells." },
 ];
 
+
+
 const ARMOR_OPTIONS = ["Light Armor", "Medium Armor", "Heavy Armor", "Shields"];
 const WEAPON_OPTIONS = ["Simple Weapons", "Martial Weapons"];
 const LANGUAGE_OPTIONS = ["Common", "Dwarvish", "Elvish", "Giant", "Gnomish", "Goblin", "Halfling", "Orc", "Abyssal", "Celestial", "Draconic", "Infernal", "Primordial", "Sylvan", "Undercommon"];
@@ -736,11 +772,18 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
   const [formData, setFormData] = useState({
     // Identity & Vitals
     name: "", race: "", char_class: "", subclass: "", level: 1, 
-    background: "", alignment: "", hp_max: 10, ac: 10, speed: 30, initiative: 0, hit_dice_total: "1d8",
+    background: "", alignment: "", hp_max: 0, ac: 10, speed: 30, initiative: 0, hit_dice_total: "1d8",
     proficiency_bonus: 2, 
     
     // Stats
     str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10,
+
+    //Equipment
+    equipped_armor: "None",
+    shield_equipped: false,
+
+    //Saving Throws
+    saving_throws: [],
     
     // Proficiencies & Features
     armor_prof: {}, weapon_prof: {}, languages: {}, tools_prof: {}, skill_prof: {},
@@ -781,13 +824,73 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
   // Spell List Source: Eldritch Knights use "Wizard" list, etc.
   const spellListSource = subSpellData ? subSpellData.list : formData.char_class;
 
-  // --- AUTOMATION: Hit Dice ---
+  // --- MAIN CALCULATOR ENGINE ---
+  // Auto-calculates HP, AC, Initiative, Saves, Spell Stats, and Hit Dice
   useEffect(() => {
-    if (CLASS_DATA[formData.char_class]) {
-      const die = CLASS_DATA[formData.char_class].hit_die;
-      setFormData(prev => ({ ...prev, hit_dice_total: `${formData.level}${die}` }));
+    // 1. BASICS
+    const lvl = formData.level;
+    const prof = Math.ceil(lvl / 4) + 1;
+    const conMod = calcMod(formData.con);
+    const dexMod = calcMod(formData.dex);
+    const classInfo = CLASS_DATA[formData.char_class];
+
+    // 2. HP CALCULATION (Fixed HP: Max at Lvl 1 + Avg thereafter)
+    // Formula: (MaxDie + Con) + (AvgDie + Con)*(Lvl-1) + Tough
+    const hitDie = classInfo?.hit_die || 8;
+    const avgDie = Math.ceil(hitDie / 2) + 1;
+    const toughFeat = formData.feats.includes("Tough") ? (2 * lvl) : 0;
+
+    const calculatedHP = (hitDie + conMod) + ((avgDie + conMod) * (lvl - 1)) + toughFeat;
+
+    // 3. AC CALCULATION
+    const armor = ARMOR_TABLE[formData.equipped_armor] || ARMOR_TABLE["None"];
+    let calculatedAC = armor.base;
+
+    if (armor.type === "light" || armor.type === "none") {
+      calculatedAC += dexMod;
+
+      // Barbarian Unarmored Defense (Con)
+      if (formData.char_class === "Barbarian" && armor.type === "none" && !formData.shield_equipped) {
+        calculatedAC = 10 + dexMod + conMod;
+      }
+      // Monk Unarmored Defense (Wis)
+      if (formData.char_class === "Monk" && armor.type === "none" && !formData.shield_equipped) {
+        calculatedAC = 10 + dexMod + calcMod(formData.wis);
+      }
+    } else if (armor.type === "medium") {
+      calculatedAC += Math.min(dexMod, 2); // Cap Dex at +2
     }
-  }, [formData.char_class, formData.level]);
+    // Heavy armor gets no Dex
+
+    if (formData.shield_equipped) calculatedAC += 2;
+
+    // 4. INITIATIVE (Dex + Alert Feat)
+    const alertBonus = formData.feats.includes("Alert") ? prof : 0;
+    const calculatedInit = dexMod + alertBonus;
+
+    // 5. SPELL STATS
+    const castMod = calcMod(formData[castingStat]);
+    const dc = 8 + prof + castMod;
+    const atk = prof + castMod;
+
+    // APPLY UPDATES
+    setFormData(prev => ({
+      ...prev,
+      hp_max: calculatedHP > 0 ? calculatedHP : 1,
+      ac: calculatedAC,
+      initiative: calculatedInit,
+      proficiency_bonus: prof,
+      saving_throws: classInfo?.saves || [],
+      spell_save_dc: dc,
+      spell_attack_mod: atk,
+      hit_dice_total: `${lvl}d${hitDie}`
+    }));
+
+  }, [
+    formData.level, formData.char_class, formData.feats, 
+    formData.equipped_armor, formData.shield_equipped,
+    formData.str, formData.dex, formData.con, formData.int, formData.wis, formData.cha
+  ]);
 
   // --- AUTOMATION: Class Features ---
   useEffect(() => {
@@ -846,20 +949,6 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
       });
     }
   }, [formData.char_class, formData.level]);
-
-  // --- AUTOMATION: Subclass Features ---
-  useEffect(() => {
-    let activeSubFeats = [];
-    if (SUBCLASS_FEATURES[formData.subclass]) {
-      for (let i = 1; i <= formData.level; i++) {
-        if (SUBCLASS_FEATURES[formData.subclass][i]) {
-          activeSubFeats = [...activeSubFeats, ...SUBCLASS_FEATURES[formData.subclass][i]];
-        }
-      }
-    }
-    setFormData(prev => ({ ...prev, subclass_features: activeSubFeats }));
-  }, [formData.subclass, formData.level]);
-
 
 // --- LOAD DATA ---
   useEffect(() => {
@@ -1197,15 +1286,48 @@ const handleSubmit = async (e) => {
         </div>
       </fieldset>
 
-      {/* --- VITALS --- */}
-      <fieldset style={{ padding: "1rem", border: "1px solid #ccc" }}>
-        <legend><strong>Vitals</strong></legend>
-        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-            <label>HP: <input type="number" name="hp_max" value={formData.hp_max} onChange={handleChange} style={{width: "50px"}} /></label>
-            <label>AC: <input type="number" name="ac" value={formData.ac} onChange={handleChange} style={{width: "50px"}} /></label>
-            <label>Spd: <input type="number" name="speed" value={formData.speed} onChange={handleChange} style={{width: "50px"}} /></label>
-            <label>Init: <input type="number" name="initiative" value={formData.initiative} onChange={handleChange} style={{width: "50px"}} /></label>
-            <label>HD: <input name="hit_dice_total" value={formData.hit_dice_total} readOnly style={{width: "60px", background: "#f0f0f0", textAlign: "center"}} /></label>
+      {/* VITALS & EQUIPMENT (Updated for Logic Engine) */}
+      <fieldset style={{ padding: "1rem", border: "1px solid #ccc", background: "#fff" }}>
+        <legend><strong>Vitals & Equipment</strong></legend>
+        
+        {/* Row 1: Calculated Vitals */}
+        <div style={{ display: "flex", gap: "15px", flexWrap: "wrap", justifyContent: "space-around", marginBottom: "15px" }}>
+            <div style={{textAlign: "center"}}>
+                <div style={{fontSize: "0.8em", color: "#666"}}>HP Max</div>
+                <div style={{fontSize: "1.4em", fontWeight: "bold", color: "#D32F2F"}}>{formData.hp_max}</div>
+            </div>
+            <div style={{textAlign: "center"}}>
+                <div style={{fontSize: "0.8em", color: "#666"}}>AC</div>
+                <div style={{fontSize: "1.4em", fontWeight: "bold", color: "#1976D2"}}>{formData.ac}</div>
+            </div>
+            <div style={{textAlign: "center"}}>
+                <div style={{fontSize: "0.8em", color: "#666"}}>Init</div>
+                <div style={{fontSize: "1.4em", fontWeight: "bold"}}>{formData.initiative >= 0 ? "+" : ""}{formData.initiative}</div>
+            </div>
+            <div style={{textAlign: "center"}}>
+                <div style={{fontSize: "0.8em", color: "#666"}}>Speed</div>
+                {/* Manual Input for Speed kept here */}
+                <input type="number" name="speed" value={formData.speed} onChange={handleChange} style={{width: "40px", textAlign: "center", fontWeight: "bold", border: "none", borderBottom: "1px solid #ccc", fontSize: "1.1em"}} />
+            </div>
+            <div style={{textAlign: "center"}}>
+                <div style={{fontSize: "0.8em", color: "#666"}}>Hit Dice</div>
+                <div style={{fontSize: "1.2em", fontWeight: "bold"}}>{formData.hit_dice_total}</div>
+            </div>
+        </div>
+
+        {/* Row 2: Equipment Controls (Drives AC) */}
+        <div style={{borderTop: "1px solid #eee", paddingTop: "10px"}}>
+          <label style={{fontSize: "0.9em", fontWeight: "bold", marginRight: "10px"}}>Armor:</label>
+          <div style={{display: "flex", gap: "10px", alignItems: "center"}}>
+               <select name="equipped_armor" value={formData.equipped_armor} onChange={handleChange} style={{flex: 1, padding: "5px"}}>
+                   <option value="None">None (Unarmored)</option>
+                   {Object.keys(ARMOR_TABLE).filter(k => k !== "None").map(a => <option key={a} value={a}>{a} (AC {ARMOR_TABLE[a].base})</option>)}
+               </select>
+               <label style={{fontSize: "0.9em", display: "flex", alignItems: "center", cursor: "pointer"}}>
+                  <input type="checkbox" name="shield_equipped" checked={formData.shield_equipped} onChange={e => setFormData(prev => ({...prev, shield_equipped: e.target.checked}))} style={{marginRight: "5px"}}/> 
+                  +Shield
+               </label>
+          </div>
         </div>
       </fieldset>
 
@@ -1274,6 +1396,11 @@ const handleSubmit = async (e) => {
                 <input type="number" name={stat} value={formData[stat]} onChange={handleChange} style={{ width: "100%", padding: "5px", textAlign: "center" }} />
               </div>
             ))}
+        </div>
+        <div style={{marginTop: "10px", borderTop: "1px solid #eee", paddingTop: "5px", fontSize: "0.9em"}}>
+            <strong>Attack Bonuses: </strong>
+            <span style={{color: "#D32F2F", marginRight: "10px"}}>Melee: +{calcMod(formData.str) + formData.proficiency_bonus}</span>
+            <span style={{color: "#1976D2"}}>Ranged: +{calcMod(formData.dex) + formData.proficiency_bonus}</span>
         </div>
       </fieldset>
 
