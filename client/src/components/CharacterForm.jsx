@@ -21,6 +21,24 @@ const CLASS_DATA = {
   "Wizard": { hit_die: "d6", caster_type: "full" }
 };
 
+// --- SUBCLASS OPTIONS (Names Only) ---
+const SUBCLASS_OPTIONS = {
+  "Artificer": ["Alchemist", "Armorer", "Artillerist", "Battle Smith"],
+  "Barbarian": ["Path of the Berserker", "Path of the Totem Warrior"],
+  "Bard": ["College of Lore", "College of Valor"],
+  "Cleric": ["Knowledge Domain", "Life Domain", "Light Domain", "Nature Domain", "Tempest Domain", "Trickery Domain", "War Domain"],
+  "Druid": ["Circle of the Land", "Circle of the Moon"],
+  "Fighter": ["Champion", "Battle Master", "Eldritch Knight"],
+  "Monk": ["Way of the Open Hand", "Way of Shadow", "Way of the Four Elements"],
+  "Paladin": ["Oath of Devotion", "Oath of the Ancients", "Oath of Vengeance"],
+  "Psion": ["Metamorph", "Psi Warper", "Psykinetic", "Telepath"],
+  "Ranger": ["Hunter", "Beast Master"],
+  "Rogue": ["Thief", "Assassin", "Arcane Trickster"],
+  "Sorcerer": ["Draconic Bloodline", "Wild Magic"],
+  "Warlock": ["The Archfey", "The Fiend", "The Great Old One"],
+  "Wizard": ["School of Abjuration", "School of Conjuration", "School of Divination", "School of Enchantment", "School of Evocation", "School of Illusion", "School of Necromancy", "School of Transmutation"]
+};
+
 // SPELL SLOT TABLES (Corrected: Index 0 = Level 1)
 const SLOT_TABLE = {
   full: [
@@ -559,6 +577,85 @@ const CLASS_FEATURES = {
   }
 };
 
+// --- SUBCLASS FEATURES DATABASE ---
+const SUBCLASS_FEATURES = {
+  // --- ARTIFICER (2024) ---
+  "Alchemist": { 3: ["Alchemist Spells", "Experimental Elixir"], 5: ["Alchemical Savant"], 9: ["Restorative Reagents"], 15: ["Chemical Mastery"] },
+  "Armorer": { 3: ["Armorer Spells", "Arcane Armor", "Armor Model"], 5: ["Extra Attack"], 9: ["Armor Modifications"], 15: ["Perfected Armor"] },
+  "Artillerist": { 3: ["Artillerist Spells", "Eldritch Cannon"], 5: ["Arcane Firearm"], 9: ["Explosive Cannon"], 15: ["Fortified Position"] },
+  "Battle Smith": { 3: ["Battle Smith Spells", "Battle Ready", "Steel Defender"], 5: ["Extra Attack"], 9: ["Arcane Jolt"], 15: ["Improved Defender"] },
+
+  // --- PSION (UA 2025) ---
+  "Metamorph": { 3: ["Metamorph Spells", "Adaptive Body", "Psionic Weapon"], 6: ["Metabolic Control"], 10: ["Reactive Adaptation"], 14: ["Perfect Form"] },
+  "Psi Warper": { 3: ["Psi Warper Spells", "Dimensional Step"], 6: ["Spatial Manipulation"], 10: ["Transposition"], 14: ["Reality Warp"] },
+  "Psykinetic": { 3: ["Psykinetic Spells", "Telekinetic Force"], 6: ["Telekinetic Flight"], 10: ["Force Construct"], 14: ["Telekinetic Master"] },
+  "Telepath": { 3: ["Telepath Spells", "Telepathic Intrusion"], 6: ["Psychic Defense"], 10: ["Mind Control"], 14: ["Hive Mind"] },
+
+  // --- BARBARIAN ---
+  "Path of the Berserker": { 3: ["Frenzy"], 6: ["Mindless Rage"], 10: ["Intimidating Presence"], 14: ["Retaliation"] },
+  "Path of the Totem Warrior": { 3: ["Spirit Seeker", "Totem Spirit"], 6: ["Aspect of the Beast"], 10: ["Spirit Walker"], 14: ["Totemic Attunement"] },
+
+  // --- BARD ---
+  "College of Lore": { 3: ["Bonus Proficiencies", "Cutting Words"], 6: ["Additional Magical Secrets"], 14: ["Peerless Skill"] },
+  "College of Valor": { 3: ["Bonus Proficiencies", "Combat Inspiration"], 6: ["Extra Attack"], 14: ["Battle Magic"] },
+
+  // --- CLERIC ---
+  "Knowledge Domain": { 1: ["Blessings of Knowledge", "Domain Spells"], 2: ["Channel Divinity: Knowledge of the Ages"], 6: ["Channel Divinity: Read Thoughts"], 8: ["Potent Spellcasting"], 17: ["Visions of the Past"] },
+  "Life Domain": { 1: ["Bonus Proficiency", "Disciple of Life", "Domain Spells"], 2: ["Channel Divinity: Preserve Life"], 6: ["Blessed Healer"], 8: ["Divine Strike"], 17: ["Supreme Healing"] },
+  "Light Domain": { 1: ["Bonus Cantrip", "Warding Flare", "Domain Spells"], 2: ["Channel Divinity: Radiance of the Dawn"], 6: ["Improved Flare"], 8: ["Potent Spellcasting"], 17: ["Corona of Light"] },
+  "Nature Domain": { 1: ["Acolyte of Nature", "Bonus Proficiency", "Domain Spells"], 2: ["Channel Divinity: Charm Animals and Plants"], 6: ["Dampen Elements"], 8: ["Divine Strike"], 17: ["Master of Nature"] },
+  "Tempest Domain": { 1: ["Bonus Proficiencies", "Wrath of the Storm", "Domain Spells"], 2: ["Channel Divinity: Destructive Wrath"], 6: ["Thunderous Strike"], 8: ["Divine Strike"], 17: ["Stormborn"] },
+  "Trickery Domain": { 1: ["Blessing of the Trickster", "Domain Spells"], 2: ["Channel Divinity: Invoke Duplicity"], 6: ["Channel Divinity: Cloak of Shadows"], 8: ["Divine Strike"], 17: ["Improved Duplicity"] },
+  "War Domain": { 1: ["Bonus Proficiencies", "War Priest", "Domain Spells"], 2: ["Channel Divinity: Guided Strike"], 6: ["Channel Divinity: War God's Blessing"], 8: ["Divine Strike"], 17: ["Avatar of Battle"] },
+
+  // --- DRUID ---
+  "Circle of the Land": { 2: ["Bonus Cantrip", "Natural Recovery", "Circle Spells"], 6: ["Land's Stride"], 10: ["Nature's Ward"], 14: ["Nature's Sanctuary"] },
+  "Circle of the Moon": { 2: ["Combat Wild Shape", "Circle Forms"], 6: ["Primal Strike"], 10: ["Elemental Wild Shape"], 14: ["Thousand Forms"] },
+
+  // --- FIGHTER ---
+  "Champion": { 3: ["Improved Critical"], 7: ["Remarkable Athlete"], 10: ["Additional Fighting Style"], 15: ["Superior Critical"], 18: ["Survivor"] },
+  "Battle Master": { 3: ["Combat Superiority", "Student of War"], 7: ["Know Your Enemy"], 10: ["Improved Combat Superiority"], 15: ["Relentless"], 18: ["Final Combat Superiority"] },
+  "Eldritch Knight": { 3: ["Weapon Bond", "Spellcasting"], 7: ["War Magic"], 10: ["Eldritch Strike"], 15: ["Arcane Charge"], 18: ["Improved War Magic"] },
+
+  // --- MONK ---
+  "Way of the Open Hand": { 3: ["Open Hand Technique"], 6: ["Wholeness of Body"], 11: ["Tranquility"], 17: ["Quivering Palm"] },
+  "Way of Shadow": { 3: ["Shadow Arts"], 6: ["Shadow Step"], 11: ["Cloak of Shadows"], 17: ["Opportunist"] },
+  "Way of the Four Elements": { 3: ["Disciple of the Elements"], 6: ["Elemental Disciplines"], 11: ["Elemental Disciplines"], 17: ["Elemental Disciplines"] },
+
+  // --- PALADIN ---
+  "Oath of Devotion": { 3: ["Channel Divinity: Sacred Weapon", "Channel Divinity: Turn the Unholy", "Oath Spells"], 7: ["Aura of Devotion"], 15: ["Purity of Spirit"], 20: ["Holy Nimbus"] },
+  "Oath of the Ancients": { 3: ["Channel Divinity: Nature's Wrath", "Channel Divinity: Turn the Faithless", "Oath Spells"], 7: ["Aura of Warding"], 15: ["Undying Sentinel"], 20: ["Elder Champion"] },
+  "Oath of Vengeance": { 3: ["Channel Divinity: Abjure Enemy", "Channel Divinity: Vow of Enmity", "Oath Spells"], 7: ["Relentless Avenger"], 15: ["Soul of Vengeance"], 20: ["Avenging Angel"] },
+
+  // --- RANGER ---
+  "Hunter": { 3: ["Hunter's Prey"], 7: ["Defensive Tactics"], 11: ["Multiattack"], 15: ["Superior Hunter's Defense"] },
+  "Beast Master": { 3: ["Ranger's Companion"], 7: ["Exceptional Training"], 11: ["Bestial Fury"], 15: ["Share Spells"] },
+
+  // --- ROGUE ---
+  "Thief": { 3: ["Fast Hands", "Second-Story Work"], 9: ["Supreme Sneak"], 13: ["Use Magic Device"], 17: ["Thief's Reflexes"] },
+  "Assassin": { 3: ["Bonus Proficiencies", "Assassinate"], 9: ["Infiltration Expertise"], 13: ["Impostor"], 17: ["Death Strike"] },
+  "Arcane Trickster": { 3: ["Spellcasting", "Mage Hand Legerdemain"], 9: ["Magical Ambush"], 13: ["Versatile Trickster"], 17: ["Spell Thief"] },
+
+  // --- SORCERER ---
+  "Draconic Bloodline": { 1: ["Dragon Ancestor", "Draconic Resilience"], 6: ["Elemental Affinity"], 14: ["Dragon Wings"], 18: ["Draconic Presence"] },
+  "Wild Magic": { 1: ["Wild Magic Surge", "Tides of Chaos"], 6: ["Bend Luck"], 14: ["Controlled Chaos"], 18: ["Spell Bombardment"] },
+
+  // --- WARLOCK ---
+  "The Archfey": { 1: ["Fey Presence", "Expanded Spell List"], 6: ["Misty Escape"], 10: ["Beguiling Defenses"], 14: ["Dark Delirium"] },
+  "The Fiend": { 1: ["Dark One's Blessing", "Expanded Spell List"], 6: ["Dark One's Own Luck"], 10: ["Fiendish Resilience"], 14: ["Hurl Through Hell"] },
+  "The Great Old One": { 1: ["Awakened Mind", "Expanded Spell List"], 6: ["Entropic Ward"], 10: ["Thought Shield"], 14: ["Create Thrall"] },
+
+  // --- WIZARD ---
+  "School of Abjuration": { 2: ["Abjuration Savant", "Arcane Ward"], 6: ["Projected Ward"], 10: ["Improved Abjuration"], 14: ["Spell Resistance"] },
+  "School of Conjuration": { 2: ["Conjuration Savant", "Minor Conjuration"], 6: ["Benign Transposition"], 10: ["Focused Conjuration"], 14: ["Durable Summons"] },
+  "School of Divination": { 2: ["Divination Savant", "Portent"], 6: ["Expert Divination"], 10: ["The Third Eye"], 14: ["Greater Portent"] },
+  "School of Enchantment": { 2: ["Enchantment Savant", "Hypnotic Gaze"], 6: ["Instinctive Charm"], 10: ["Split Enchantment"], 14: ["Alter Memories"] },
+  "School of Evocation": { 2: ["Evocation Savant", "Sculpt Spells"], 6: ["Potent Cantrip"], 10: ["Empowered Evocation"], 14: ["Overchannel"] },
+  "School of Illusion": { 2: ["Illusion Savant", "Improved Minor Illusion"], 6: ["Malleable Illusions"], 10: ["Illusory Self"], 14: ["Illusory Reality"] },
+  "School of Necromancy": { 2: ["Necromancy Savant", "Grim Harvest"], 6: ["Undead Thralls"], 10: ["Inured to Undeath"], 14: ["Command Undead"] },
+  "School of Transmutation": { 2: ["Transmutation Savant", "Minor Alchemy"], 6: ["Transmuter's Stone"], 10: ["Shapechanger"], 14: ["Master Transmuter"] }
+};
+
 // Feats Data
 const FEATS_DATA = [
   // ORIGIN
@@ -620,7 +717,7 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
     
     // Proficiencies & Features
     armor_prof: {}, weapon_prof: {}, languages: {}, tools_prof: {}, skill_prof: {},
-    feats: [], class_features: [], species_features: [],
+    feats: [], class_features: [], species_features: [], subclass_features: [],
 
     // --- NEW SPELLCASTING ENGINE ---
     spell_save_dc: 0, 
@@ -642,6 +739,7 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
 
   const [isCustomRace, setIsCustomRace] = useState(false);
   const [isCustomClass, setIsCustomClass] = useState(false);
+  const [isCustomSubclass, setIsCustomSubclass] = useState(false);
   const [tempSpells, setTempSpells] = useState({0:"", 1:"", 2:"", 3:"", 4:"", 5:"", 6:"", 7:"", 8:"", 9:""});
   // Check if class is a caster (not "none") and not undefined
   const isCaster = CLASS_DATA[formData.char_class] && CLASS_DATA[formData.char_class].caster_type !== "none";
@@ -658,17 +756,26 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
 
   // --- AUTOMATION: Class Features ---
   useEffect(() => {
+    let combinedFeatures = [];
+
+    // 1. Get Base Class Features
     if (CLASS_FEATURES[formData.char_class]) {
-      let activeFeatures = [];
       for (let i = 1; i <= formData.level; i++) {
         const featsAtLevel = CLASS_FEATURES[formData.char_class][i];
-        if (featsAtLevel) activeFeatures = [...activeFeatures, ...featsAtLevel];
+        if (featsAtLevel) combinedFeatures = [...combinedFeatures, ...featsAtLevel];
       }
-      setFormData(prev => ({ ...prev, class_features: activeFeatures }));
-    } else {
-      setFormData(prev => ({ ...prev, class_features: [] }));
     }
-  }, [formData.char_class, formData.level]);
+
+    // 2. Get Subclass Features (if a subclass is selected)
+    if (formData.subclass && SUBCLASS_FEATURES[formData.subclass]) {
+      for (let i = 1; i <= formData.level; i++) {
+        const subFeatsAtLevel = SUBCLASS_FEATURES[formData.subclass][i];
+        if (subFeatsAtLevel) combinedFeatures = [...combinedFeatures, ...subFeatsAtLevel];
+      }
+    }
+
+    setFormData(prev => ({ ...prev, class_features: combinedFeatures }));
+  }, [formData.char_class, formData.subclass, formData.level]);
 
   // --- AUTOMATION: Species Features ---
   useEffect(() => {
@@ -704,6 +811,19 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
       });
     }
   }, [formData.char_class, formData.level]);
+
+  // --- AUTOMATION: Subclass Features ---
+  useEffect(() => {
+    let activeSubFeats = [];
+    if (SUBCLASS_FEATURES[formData.subclass]) {
+      for (let i = 1; i <= formData.level; i++) {
+        if (SUBCLASS_FEATURES[formData.subclass][i]) {
+          activeSubFeats = [...activeSubFeats, ...SUBCLASS_FEATURES[formData.subclass][i]];
+        }
+      }
+    }
+    setFormData(prev => ({ ...prev, subclass_features: activeSubFeats }));
+  }, [formData.subclass, formData.level]);
 
 
 // --- LOAD DATA ---
@@ -771,6 +891,7 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
         feats: ext.feats || [],
         class_features: ext.class_features || [], 
         species_features: ext.species_features || [],
+        subclass_features: ext.subclass_features || [],
 
         // NEW SPELL DATA
         spells: loadedSpells,
@@ -788,6 +909,13 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
 
       setIsCustomRace(!RACES.includes(characterToEdit.race) && characterToEdit.race !== "");
       setIsCustomClass(!Object.keys(CLASS_DATA).includes(characterToEdit.char_class) && characterToEdit.char_class !== "");
+
+      // Check if the loaded subclass exists in our options list. If not, it's custom.
+      const hasSubclass = characterToEdit.subclass;
+      const classHasOptions = SUBCLASS_OPTIONS[characterToEdit.char_class];
+      const isKnownSubclass = classHasOptions && classHasOptions.includes(characterToEdit.subclass);
+      
+      setIsCustomSubclass(hasSubclass && !isKnownSubclass);
     } else {
       // RESET FORM
       setFormData({
@@ -795,7 +923,7 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
         background: "", alignment: "", hp_max: 10, ac: 10, speed: 30, initiative: 0, hit_dice_total: "1d8",
         proficiency_bonus: 2, str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10,
         armor_prof: {}, weapon_prof: {}, languages: {}, tools_prof: {}, skill_prof: {},
-        feats: [], class_features: [], species_features: [],
+        feats: [], class_features: [], species_features: [], subclass_features: [],
 
         spell_save_dc: 0, spell_attack_mod: 0,
         spells: { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [] },
@@ -809,6 +937,7 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
       });
       setIsCustomRace(false);
       setIsCustomClass(false);
+      setIsCustomSubclass(false);
     }
   }, [characterToEdit]);
 
@@ -994,35 +1123,40 @@ const handleSubmit = async (e) => {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
             <input name="name" placeholder="Name" value={formData.name} onChange={handleChange} required />
             
-            {/* Race */}
+            {/* Race Select (Existing Logic) */}
             {isCustomRace ? (
-               <div style={{display: "flex", gap: "5px"}}>
-                 <input name="race" placeholder="Type Species..." value={formData.race} onChange={handleChange} autoFocus required style={{flex: 1}}/>
-                 <button type="button" onClick={() => setIsCustomRace(false)}>Back</button>
-               </div>
+               <div style={{display: "flex", gap: "5px"}}><input name="race" placeholder="Species..." value={formData.race} onChange={handleChange} autoFocus required style={{flex: 1}}/><button type="button" onClick={() => setIsCustomRace(false)}>Back</button></div>
             ) : (
-              <select name="race" value={RACES.includes(formData.race) ? formData.race : ""} onChange={(e) => handleDropdownChange(e, "race", setIsCustomRace)} required>
-                <option value="" disabled>Select Species</option>
-                {RACES.map(r => <option key={r} value={r}>{r}</option>)}
-                <option value="CUSTOM_OPTION" style={{fontWeight: "bold"}}>+ Enter Custom...</option>
-              </select>
+              <select name="race" value={RACES.includes(formData.race) ? formData.race : ""} onChange={(e) => handleDropdownChange(e, "race", setIsCustomRace)} required><option value="" disabled>Species</option>{RACES.map(r => <option key={r} value={r}>{r}</option>)}<option value="CUSTOM_OPTION">+ Custom...</option></select>
             )}
 
-            {/* Class */}
+            {/* Class Select (Updates to reset subclass on change) */}
             {isCustomClass ? (
-               <div style={{display: "flex", gap: "5px"}}>
-                 <input name="char_class" placeholder="Type Class..." value={formData.char_class} onChange={handleChange} autoFocus required style={{flex: 1}}/>
-                 <button type="button" onClick={() => setIsCustomClass(false)}>Back</button>
-               </div>
+               <div style={{display: "flex", gap: "5px"}}><input name="char_class" placeholder="Class..." value={formData.char_class} onChange={handleChange} autoFocus required style={{flex: 1}}/><button type="button" onClick={() => setIsCustomClass(false)}>Back</button></div>
             ) : (
               <select name="char_class" value={Object.keys(CLASS_DATA).includes(formData.char_class) ? formData.char_class : ""} onChange={(e) => handleDropdownChange(e, "char_class", setIsCustomClass)} required>
-                <option value="" disabled>Select Class</option>
+                <option value="" disabled>Class</option>
                 {Object.keys(CLASS_DATA).map(c => <option key={c} value={c}>{c}</option>)}
-                <option value="CUSTOM_OPTION" style={{fontWeight: "bold"}}>+ Enter Custom...</option>
+                <option value="CUSTOM_OPTION">+ Custom...</option>
               </select>
             )}
 
-            <input name="subclass" placeholder="Subclass" value={formData.subclass} onChange={handleChange} />
+            {/* NEW: Subclass Select */}
+            {formData.char_class && !isCustomClass && (
+              isCustomSubclass ? (
+                <div style={{display: "flex", gap: "5px", gridColumn: "span 2"}}>
+                  <input name="subclass" placeholder="Subclass..." value={formData.subclass} onChange={handleChange} autoFocus style={{flex: 1}}/>
+                  <button type="button" onClick={() => setIsCustomSubclass(false)}>Back</button>
+                </div>
+              ) : (
+                <select name="subclass" value={formData.subclass} onChange={(e) => handleDropdownChange(e, "subclass", setIsCustomSubclass)} style={{gridColumn: "span 2"}}>
+                  <option value="" disabled>Select Subclass</option>
+                  {SUBCLASS_OPTIONS[formData.char_class] && SUBCLASS_OPTIONS[formData.char_class].map(s => <option key={s} value={s}>{s}</option>)}
+                  <option value="CUSTOM_OPTION" style={{fontWeight: "bold"}}>+ Enter Custom...</option>
+                </select>
+              )
+            )}
+
             <label>Level: <input type="number" name="level" value={formData.level} onChange={handleChange} min="1" max="20" style={{width: "60px"}} /></label>
         </div>
       </fieldset>
