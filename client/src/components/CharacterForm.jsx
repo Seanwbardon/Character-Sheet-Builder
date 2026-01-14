@@ -5,20 +5,229 @@ const RACES = ["Human", "Elf", "Dwarf", "Halfling", "Orc", "Tiefling", "Gnome", 
 
 // Map Classes to their Hit Die size
 const CLASS_DATA = {
-  "Artificer": { hit_die: "d8" },
-  "Barbarian": { hit_die: "d12" },
-  "Bard": { hit_die: "d8" },
-  "Cleric": { hit_die: "d8" },
-  "Druid": { hit_die: "d8" },
-  "Fighter": { hit_die: "d10" },
-  "Monk": { hit_die: "d8" },
-  "Paladin": { hit_die: "d10" },
-  "Psion": { hit_die: "d6" },
-  "Ranger": { hit_die: "d10" },
-  "Rogue": { hit_die: "d8" },
-  "Sorcerer": { hit_die: "d6" },
-  "Warlock": { hit_die: "d8" },
-  "Wizard": { hit_die: "d6" }
+  "Artificer": { hit_die: "d8", caster_type: "half_up" }, 
+  "Barbarian": { hit_die: "d12", caster_type: "none" },
+  "Bard": { hit_die: "d8", caster_type: "full" },
+  "Cleric": { hit_die: "d8", caster_type: "full" },
+  "Druid": { hit_die: "d8", caster_type: "full" },
+  "Fighter": { hit_die: "d10", caster_type: "none" },
+  "Monk": { hit_die: "d8", caster_type: "none" },
+  "Paladin": { hit_die: "d10", caster_type: "half" },
+  "Psion": { hit_die: "d6", caster_type: "psion" }, 
+  "Ranger": { hit_die: "d10", caster_type: "half" },
+  "Rogue": { hit_die: "d8", caster_type: "none" },
+  "Sorcerer": { hit_die: "d6", caster_type: "full" },
+  "Warlock": { hit_die: "d8", caster_type: "pact" },
+  "Wizard": { hit_die: "d6", caster_type: "full" }
+};
+
+// SPELL SLOT TABLES (Corrected: Index 0 = Level 1)
+const SLOT_TABLE = {
+  full: [
+    [2,0,0,0,0,0,0,0,0], // Lvl 1
+    [3,0,0,0,0,0,0,0,0], // Lvl 2
+    [4,2,0,0,0,0,0,0,0], // Lvl 3
+    [4,3,0,0,0,0,0,0,0], // Lvl 4
+    [4,3,2,0,0,0,0,0,0], // Lvl 5
+    [4,3,3,0,0,0,0,0,0], // Lvl 6
+    [4,3,3,1,0,0,0,0,0], // Lvl 7
+    [4,3,3,2,0,0,0,0,0], // Lvl 8
+    [4,3,3,3,1,0,0,0,0], // Lvl 9
+    [4,3,3,3,2,0,0,0,0], // Lvl 10
+    [4,3,3,3,2,1,0,0,0], // Lvl 11
+    [4,3,3,3,2,1,0,0,0], // Lvl 12
+    [4,3,3,3,2,1,1,0,0], // Lvl 13
+    [4,3,3,3,2,1,1,0,0], // Lvl 14
+    [4,3,3,3,2,1,1,1,0], // Lvl 15
+    [4,3,3,3,2,1,1,1,0], // Lvl 16
+    [4,3,3,3,2,1,1,1,1], // Lvl 17
+    [4,3,3,3,3,1,1,1,1], // Lvl 18
+    [4,3,3,3,3,2,1,1,1], // Lvl 19
+    [4,3,3,3,3,2,2,1,1]  // Lvl 20
+  ],
+  half: [ // Paladin, Ranger (Start at lvl 2)
+    [0,0,0,0,0,0,0,0,0], // Lvl 1
+    [2,0,0,0,0,0,0,0,0], // Lvl 2
+    [3,0,0,0,0,0,0,0,0], // Lvl 3
+    [3,0,0,0,0,0,0,0,0], 
+    [4,2,0,0,0,0,0,0,0], // Lvl 5
+    [4,2,0,0,0,0,0,0,0], 
+    [4,3,0,0,0,0,0,0,0], 
+    [4,3,0,0,0,0,0,0,0], 
+    [4,3,2,0,0,0,0,0,0],
+    [4,3,2,0,0,0,0,0,0], // Lvl 10
+    [4,3,3,0,0,0,0,0,0], 
+    [4,3,3,0,0,0,0,0,0], 
+    [4,3,3,1,0,0,0,0,0], 
+    [4,3,3,1,0,0,0,0,0], 
+    [4,3,3,2,0,0,0,0,0], // Lvl 15
+    [4,3,3,2,0,0,0,0,0], 
+    [4,3,3,3,1,0,0,0,0], 
+    [4,3,3,3,1,0,0,0,0], 
+    [4,3,3,3,2,0,0,0,0], // Lvl 19
+    [4,3,3,3,2,0,0,0,0]  // Lvl 20
+  ],
+  half_up: [ // Artificer (Starts at lvl 1)
+    [2,0,0,0,0,0,0,0,0], // Lvl 1
+    [2,0,0,0,0,0,0,0,0], 
+    [3,0,0,0,0,0,0,0,0], 
+    [3,0,0,0,0,0,0,0,0], 
+    [4,2,0,0,0,0,0,0,0], // Lvl 5
+    [4,2,0,0,0,0,0,0,0], 
+    [4,3,0,0,0,0,0,0,0], 
+    [4,3,0,0,0,0,0,0,0], 
+    [4,3,2,0,0,0,0,0,0], 
+    [4,3,2,0,0,0,0,0,0], // Lvl 10
+    [4,3,3,0,0,0,0,0,0], 
+    [4,3,3,0,0,0,0,0,0], 
+    [4,3,3,1,0,0,0,0,0], 
+    [4,3,3,1,0,0,0,0,0], 
+    [4,3,3,2,0,0,0,0,0], // Lvl 15
+    [4,3,3,2,0,0,0,0,0], 
+    [4,3,3,3,1,0,0,0,0], 
+    [4,3,3,3,1,0,0,0,0], 
+    [4,3,3,3,2,0,0,0,0], 
+    [4,3,3,3,2,0,0,0,0]  // Lvl 20
+  ],
+  pact: [ // Warlock
+    [1,0,0,0,0], // Lvl 1
+    [2,0,0,0,0], 
+    [0,2,0,0,0], 
+    [0,2,0,0,0], 
+    [0,0,2,0,0], // Lvl 5
+    [0,0,2,0,0], 
+    [0,0,0,2,0], 
+    [0,0,0,2,0], 
+    [0,0,0,0,2], 
+    [0,0,0,0,2], // Lvl 10
+    [0,0,0,0,3], 
+    [0,0,0,0,3], 
+    [0,0,0,0,3], 
+    [0,0,0,0,3], 
+    [0,0,0,0,3], // Lvl 15
+    [0,0,0,0,3], 
+    [0,0,0,0,4], 
+    [0,0,0,0,4], 
+    [0,0,0,0,4], 
+    [0,0,0,0,4]  // Lvl 20
+  ]
+};
+
+const SPELL_ABILITY = {
+  "Artificer": "int", "Bard": "cha", "Cleric": "wis", "Druid": "wis", "Paladin": "cha",
+  "Psion": "int", "Ranger": "wis", "Sorcerer": "cha", "Warlock": "cha", "Wizard": "int"
+};
+
+// MASTER SPELL DATABASE (SRD Levels 0-9)
+const SPELL_LISTS = {
+  "Artificer": {
+    0: ["Acid Splash", "Create Bonfire", "Dancing Lights", "Fire Bolt", "Frostbite", "Guidance", "Light", "Mage Hand", "Mending", "Message", "Poison Spray", "Prestidigitation", "Ray of Frost", "Resistance", "Shocking Grasp", "Spare the Dying", "Thorn Whip", "Thunderclap"],
+    1: ["Absorb Elements", "Alarm", "Catapult", "Cure Wounds", "Detect Magic", "Disguise Self", "Expeditious Retreat", "Faerie Fire", "False Life", "Feather Fall", "Grease", "Identify", "Jump", "Longstrider", "Purify Food and Drink", "Sanctuary", "Snare", "Tasha's Caustic Brew"],
+    2: ["Aid", "Alter Self", "Arcane Lock", "Blur", "Continual Flame", "Darkvision", "Enhance Ability", "Enlarge/Reduce", "Heat Metal", "Invisibility", "Lesser Restoration", "Levitate", "Magic Mouth", "Magic Weapon", "Protection from Poison", "Pyrotechnics", "Rope Trick", "See Invisibility", "Skywrite", "Spider Climb", "Web"],
+    3: ["Blink", "Catnap", "Create Food and Water", "Dispel Magic", "Elemental Weapon", "Flame Arrows", "Fly", "Glyph of Warding", "Haste", "Intellect Fortress", "Protection from Energy", "Revivify", "Tiny Servant", "Water Breathing", "Water Walk"],
+    4: ["Arcane Eye", "Elemental Bane", "Fabricate", "Freedom of Movement", "Leomund's Secret Chest", "Mordenkainen's Faithful Hound", "Mordenkainen's Private Sanctum", "Otiluke's Resilient Sphere", "Stone Shape", "Stoneskin", "Summon Construct"],
+    5: ["Animate Objects", "Bigby's Hand", "Creation", "Greater Restoration", "Skill Empowerment", "Transmute Rock", "Wall of Stone"]
+  },
+  "Bard": {
+    0: ["Blade Ward", "Dancing Lights", "Friends", "Light", "Mage Hand", "Mending", "Message", "Minor Illusion", "Prestidigitation", "Thunderclap", "True Strike", "Vicious Mockery"],
+    1: ["Animal Friendship", "Bane", "Charm Person", "Comprehend Languages", "Cure Wounds", "Detect Magic", "Disguise Self", "Dissonant Whispers", "Faerie Fire", "Feather Fall", "Healing Word", "Heroism", "Identify", "Illusory Script", "Longstrider", "Silent Image", "Sleep", "Speak with Animals", "Tasha's Hideous Laughter", "Thunderwave", "Unseen Servant"],
+    2: ["Aid", "Animal Messenger", "Blindness/Deafness", "Calm Emotions", "Cloud of Daggers", "Crown of Madness", "Detect Thoughts", "Enhance Ability", "Enthrall", "Heat Metal", "Hold Person", "Invisibility", "Knock", "Lesser Restoration", "Locate Animals or Plants", "Locate Object", "Magic Mouth", "Phantasmal Force", "See Invisibility", "Shatter", "Silence", "Suggestion", "Zone of Truth"],
+    3: ["Bestow Curse", "Catnap", "Clairvoyance", "Dispel Magic", "Enemies Abound", "Fear", "Feign Death", "Glyph of Warding", "Hypnotic Pattern", "Leomund's Tiny Hut", "Major Image", "Nondetection", "Plant Growth", "Sending", "Speak with Dead", "Speak with Plants", "Stinking Cloud", "Tongues"],
+    4: ["Charm Monster", "Compulsion", "Confusion", "Dimension Door", "Freedom of Movement", "Greater Invisibility", "Hallucinatory Terrain", "Locate Creature", "Phantasmal Killer", "Polymorph"],
+    5: ["Animate Objects", "Awaken", "Dominate Person", "Dream", "Geas", "Greater Restoration", "Hold Monster", "Legend Lore", "Mass Cure Wounds", "Mislead", "Modify Memory", "Planar Binding", "Raise Dead", "Scrying", "Seeming", "Skill Empowerment", "Synaptic Static", "Teleportation Circle"],
+    6: ["Eyebite", "Find the Path", "Guards and Wards", "Mass Suggestion", "Otto's Irresistible Dance", "Programmed Illusion", "True Seeing"],
+    7: ["Etherealness", "Forcecage", "Mirage Arcane", "Mordenkainen's Magnificent Mansion", "Mordenkainen's Sword", "Project Image", "Regenerate", "Resurrection", "Symbol", "Teleport"],
+    8: ["Dominate Monster", "Feeblemind", "Glibness", "Mind Blank", "Power Word Stun"],
+    9: ["Foresight", "Mass Polymorph", "Power Word Heal", "Power Word Kill", "Prismatic Wall", "Psychic Scream", "True Polymorph"]
+  },
+  "Cleric": {
+    0: ["Guidance", "Light", "Mending", "Resistance", "Sacred Flame", "Spare the Dying", "Thaumaturgy", "Toll the Dead", "Word of Radiance"],
+    1: ["Bane", "Bless", "Command", "Create or Destroy Water", "Cure Wounds", "Detect Evil and Good", "Detect Magic", "Detect Poison and Disease", "Guiding Bolt", "Healing Word", "Inflict Wounds", "Protection from Evil and Good", "Purify Food and Drink", "Sanctuary", "Shield of Faith"],
+    2: ["Aid", "Augury", "Blindness/Deafness", "Calm Emotions", "Continual Flame", "Enhance Ability", "Find Traps", "Gentle Repose", "Hold Person", "Lesser Restoration", "Locate Object", "Prayer of Healing", "Protection from Poison", "Silence", "Spiritual Weapon", "Warding Bond", "Zone of Truth"],
+    3: ["Animate Dead", "Beacon of Hope", "Bestow Curse", "Clairvoyance", "Create Food and Water", "Daylight", "Dispel Magic", "Feign Death", "Glyph of Warding", "Magic Circle", "Mass Healing Word", "Meld into Stone", "Protection from Energy", "Remove Curse", "Revivify", "Sending", "Speak with Dead", "Spirit Guardians", "Tongues", "Water Walk"],
+    4: ["Banishment", "Control Water", "Death Ward", "Divination", "Freedom of Movement", "Guardian of Faith", "Locate Creature", "Stone Shape"],
+    5: ["Commune", "Contagion", "Dispel Evil and Good", "Flame Strike", "Geas", "Greater Restoration", "Hallow", "Insect Plague", "Legend Lore", "Mass Cure Wounds", "Planar Binding", "Raise Dead", "Scrying"],
+    6: ["Blade Barrier", "Create Undead", "Find the Path", "Forbiddance", "Harm", "Heal", "Heroes' Feast", "Planar Ally", "True Seeing", "Word of Recall"],
+    7: ["Conjure Celestial", "Divine Word", "Etherealness", "Fire Storm", "Plane Shift", "Regenerate", "Resurrection", "Symbol"],
+    8: ["Antimagic Field", "Control Weather", "Earthquake", "Holy Aura"],
+    9: ["Astral Projection", "Gate", "Mass Heal", "True Resurrection"]
+  },
+  "Druid": {
+    0: ["Control Flames", "Create Bonfire", "Druidcraft", "Frostbite", "Guidance", "Gust", "Infestation", "Magic Stone", "Mending", "Mold Earth", "Poison Spray", "Primal Savagery", "Produce Flame", "Resistance", "Shape Water", "Shillelagh", "Thorn Whip", "Thunderclap"],
+    1: ["Absorb Elements", "Animal Friendship", "Beast Bond", "Charm Person", "Create or Destroy Water", "Cure Wounds", "Detect Magic", "Detect Poison and Disease", "Earth Tremor", "Entangle", "Faerie Fire", "Fog Cloud", "Goodberry", "Healing Word", "Ice Knife", "Jump", "Longstrider", "Purify Food and Drink", "Snare", "Speak with Animals", "Thunderwave"],
+    2: ["Animal Messenger", "Barkskin", "Beast Sense", "Darkvision", "Dust Devil", "Earthbind", "Enhance Ability", "Find Traps", "Flame Blade", "Flaming Sphere", "Gust of Wind", "Heat Metal", "Hold Person", "Lesser Restoration", "Locate Animals or Plants", "Locate Object", "Moonbeam", "Pass without Trace", "Protection from Poison", "Spike Growth", "Warding Wind"],
+    3: ["Call Lightning", "Conjure Animals", "Daylight", "Dispel Magic", "Erupting Earth", "Feign Death", "Flame Arrows", "Meld into Stone", "Plant Growth", "Protection from Energy", "Sleet Storm", "Speak with Plants", "Tidal Wave", "Wall of Water", "Water Breathing", "Water Walk", "Wind Wall"],
+    4: ["Blight", "Charm Monster", "Confusion", "Conjure Minor Elementals", "Conjure Woodland Beings", "Control Water", "Dominate Beast", "Elemental Bane", "Freedom of Movement", "Giant Insect", "Grasping Vine", "Guardian of Nature", "Hallucinatory Terrain", "Ice Storm", "Locate Creature", "Polymorph", "Stone Shape", "Stoneskin", "Wall of Fire", "Watery Sphere"],
+    5: ["Antilife Shell", "Awaken", "Commune with Nature", "Conjure Elemental", "Contagion", "Control Winds", "Geas", "Greater Restoration", "Insect Plague", "Maelstrom", "Mass Cure Wounds", "Planar Binding", "Reincarnate", "Scrying", "Transmute Rock", "Tree Stride", "Wall of Stone", "Wrath of Nature"],
+    6: ["Bones of the Earth", "Conjure Fey", "Druid Grove", "Find the Path", "Heal", "Heroes' Feast", "Investiture of Flame", "Investiture of Ice", "Investiture of Stone", "Investiture of Wind", "Move Earth", "Primordial Ward", "Sunbeam", "Transport via Plants", "Wall of Thorns", "Wind Walk"],
+    7: ["Fire Storm", "Mirage Arcane", "Plane Shift", "Regenerate", "Reverse Gravity", "Whirlwind"],
+    8: ["Animal Shapes", "Antipathy/Sympathy", "Control Weather", "Earthquake", "Feeblemind", "Sunburst", "Tsunami"],
+    9: ["Foresight", "Shapechange", "Storm of Vengeance", "True Resurrection"]
+  },
+  "Paladin": {
+    0: [], 
+    1: ["Bless", "Ceremony", "Command", "Compelled Duel", "Cure Wounds", "Detect Evil and Good", "Detect Magic", "Detect Poison and Disease", "Divine Favor", "Heroism", "Protection from Evil and Good", "Purify Food and Drink", "Searing Smite", "Shield of Faith", "Thunderous Smite", "Wrathful Smite"],
+    2: ["Aid", "Branding Smite", "Find Steed", "Lesser Restoration", "Locate Object", "Magic Weapon", "Protection from Poison", "Zone of Truth"],
+    3: ["Aura of Vitality", "Blinding Smite", "Create Food and Water", "Crusader's Mantle", "Daylight", "Dispel Magic", "Elemental Weapon", "Magic Circle", "Remove Curse", "Revivify", "Spirit Shroud"],
+    4: ["Aura of Life", "Aura of Purity", "Banishment", "Death Ward", "Find Greater Steed", "Locate Creature", "Staggering Smite"],
+    5: ["Banishing Smite", "Circle of Power", "Destructive Wave", "Dispel Evil and Good", "Geas", "Holy Weapon", "Raise Dead"]
+  },
+  "Psion": { // Updated based on standard Psionic themes and UA
+    0: ["Energy Beam", "Mind Sliver", "Mage Hand (Psionic)", "Message", "Friends", "Minor Illusion", "Vicious Mockery"],
+    1: ["Id Insinuation", "Mental Barrier", "Catapult", "Charm Person", "Command", "Detect Thoughts", "Dissonant Whispers", "Silent Image", "Sleep", "Tasha's Hideous Laughter"],
+    2: ["Blindness/Deafness", "Calm Emotions", "Crown of Madness", "Detect Thoughts", "Hold Person", "Levitate", "Mind Spike", "Phantasmal Force", "Suggestion"],
+    3: ["Catnap", "Clairvoyance", "Enemies Abound", "Fear", "Fly", "Hypnotic Pattern", "Intellect Fortress", "Major Image", "Sending", "Tongues"],
+    4: ["Arcane Eye", "Charm Monster", "Compulsion", "Confusion", "Dimension Door", "Dominate Beast", "Locate Creature", "Phantasmal Killer", "Resilient Sphere"],
+    5: ["Animate Objects", "Bigby's Hand", "Dominate Person", "Geas", "Hold Monster", "Modify Memory", "Rary's Telepathic Bond", "Synaptic Static", "Telekinesis", "Wall of Force"],
+    6: ["Mass Suggestion", "Mental Prison", "Otto's Irresistible Dance", "True Seeing"],
+    7: ["Etherealness", "Forcecage", "Power Word Pain", "Project Image", "Reverse Gravity", "Teleport"],
+    8: ["Dominate Monster", "Feeblemind", "Mind Blank", "Power Word Stun", "Telepathy"],
+    9: ["Astral Projection", "Foresight", "Gate", "Psychic Scream", "Time Stop", "Weird"]
+  },
+  "Ranger": {
+    0: [], 
+    1: ["Absorb Elements", "Alarm", "Animal Friendship", "Beast Bond", "Cure Wounds", "Detect Magic", "Detect Poison and Disease", "Ensnaring Strike", "Entangle", "Fog Cloud", "Goodberry", "Hail of Thorns", "Hunter's Mark", "Jump", "Longstrider", "Snare", "Speak with Animals", "Zephyr Strike"],
+    2: ["Animal Messenger", "Barkskin", "Beast Sense", "Cordon of Arrows", "Darkvision", "Find Traps", "Lesser Restoration", "Locate Animals or Plants", "Locate Object", "Pass without Trace", "Protection from Poison", "Silence", "Spike Growth"],
+    3: ["Conjure Animals", "Conjure Barrage", "Daylight", "Flame Arrows", "Lightning Arrow", "Nondetection", "Plant Growth", "Protection from Energy", "Speak with Plants", "Water Breathing", "Water Walk", "Wind Wall"],
+    4: ["Conjure Woodland Beings", "Freedom of Movement", "Grasping Vine", "Guardian of Nature", "Locate Creature", "Stoneskin"],
+    5: ["Commune with Nature", "Conjure Volley", "Greater Restoration", "Steel Wind Strike", "Swift Quiver", "Tree Stride", "Wrath of Nature"]
+  },
+  "Sorcerer": {
+    0: ["Acid Splash", "Blade Ward", "Booming Blade", "Chill Touch", "Control Flames", "Create Bonfire", "Dancing Lights", "Fire Bolt", "Friends", "Frostbite", "Green-Flame Blade", "Gust", "Infestation", "Light", "Lightning Lure", "Mage Hand", "Mending", "Message", "Mind Sliver", "Minor Illusion", "Mold Earth", "Poison Spray", "Prestidigitation", "Ray of Frost", "Shape Water", "Shocking Grasp", "Sword Burst", "Thunderclap", "True Strike"],
+    1: ["Absorb Elements", "Burning Hands", "Catapult", "Chaos Bolt", "Charm Person", "Chromatic Orb", "Color Spray", "Comprehend Languages", "Detect Magic", "Disguise Self", "Earth Tremor", "Expeditious Retreat", "False Life", "Feather Fall", "Fog Cloud", "Grease", "Ice Knife", "Jump", "Mage Armor", "Magic Missile", "Ray of Sickness", "Shield", "Silent Image", "Sleep", "Tasha's Caustic Brew", "Thunderwave", "Witch Bolt"],
+    2: ["Aganazzar's Scorcher", "Alter Self", "Blindness/Deafness", "Blur", "Cloud of Daggers", "Crown of Madness", "Darkness", "Darkvision", "Detect Thoughts", "Dragon's Breath", "Dust Devil", "Earthbind", "Enhance Ability", "Enlarge/Reduce", "Flame Blade", "Flaming Sphere", "Gust of Wind", "Hold Person", "Invisibility", "Knock", "Levitate", "Maximilian's Earthen Grasp", "Mind Spike", "Mirror Image", "Misty Step", "Phantasmal Force", "Pyrotechnics", "Scorching Ray", "See Invisibility", "Shadow Blade", "Shatter", "Snilloc's Snowball Swarm", "Spider Climb", "Suggestion", "Tasha's Mind Whip", "Web", "Wither and Bloom"],
+    3: ["Blink", "Catnap", "Clairvoyance", "Counterspell", "Daylight", "Dispel Magic", "Enemies Abound", "Erupting Earth", "Fear", "Fireball", "Flame Arrows", "Fly", "Gaseous Form", "Haste", "Hypnotic Pattern", "Inciting Greed", "Intellect Fortress", "Lightning Bolt", "Major Image", "Melf's Minute Meteors", "Protection from Energy", "Sleet Storm", "Slow", "Stinking Cloud", "Thunder Step", "Tongues", "Vampiric Touch", "Wall of Water", "Water Breathing", "Water Walk"],
+    4: ["Banishment", "Blight", "Charm Monster", "Confusion", "Dimension Door", "Dominate Beast", "Fire Shield", "Greater Invisibility", "Ice Storm", "Polymorph", "Raulothim's Psychic Lance", "Sickening Radiance", "Stoneskin", "Storm Sphere", "Vitriolic Sphere", "Wall of Fire", "Watery Sphere"],
+    5: ["Animate Objects", "Bigby's Hand", "Cloudkill", "Cone of Cold", "Control Winds", "Creation", "Dominate Person", "Enervation", "Far Step", "Hold Monster", "Immolation", "Insect Plague", "Seeming", "Skill Empowerment", "Synaptic Static", "Telekinesis", "Teleportation Circle", "Wall of Light", "Wall of Stone"],
+    6: ["Arcane Gate", "Chain Lightning", "Circle of Death", "Disintegrate", "Eyebite", "Flesh to Stone", "Globe of Invulnerability", "Investiture of Flame", "Investiture of Ice", "Investiture of Stone", "Investiture of Wind", "Mass Suggestion", "Mental Prison", "Move Earth", "Otiluke's Freezing Sphere", "Scatter", "Sunbeam", "True Seeing"],
+    7: ["Crown of Stars", "Delayed Blast Fireball", "Draconic Transformation", "Etherealness", "Finger of Death", "Fire Storm", "Plane Shift", "Power Word Pain", "Prismatic Spray", "Reverse Gravity", "Teleport"],
+    8: ["Abi-Dalzim's Horrid Wilting", "Demiplane", "Dominate Monster", "Earthquake", "Incendiary Cloud", "Power Word Stun", "Sunburst"],
+    9: ["Blade of Disaster", "Gate", "Mass Polymorph", "Meteor Swarm", "Power Word Kill", "Psychic Scream", "Time Stop", "Wish"]
+  },
+  "Warlock": {
+    0: ["Blade Ward", "Booming Blade", "Chill Touch", "Create Bonfire", "Eldritch Blast", "Friends", "Frostbite", "Green-Flame Blade", "Infestation", "Lightning Lure", "Mage Hand", "Magic Stone", "Mind Sliver", "Minor Illusion", "Poison Spray", "Prestidigitation", "Sword Burst", "Thunderclap", "Toll the Dead", "True Strike"],
+    1: ["Armor of Agathys", "Arms of Hadar", "Cause Fear", "Charm Person", "Comprehend Languages", "Distort Value", "Expeditious Retreat", "Hellish Rebuke", "Hex", "Illusory Script", "Protection from Evil and Good", "Unseen Servant", "Witch Bolt"],
+    2: ["Cloud of Daggers", "Crown of Madness", "Darkness", "Earthbind", "Enthrall", "Hold Person", "Invisibility", "Mind Spike", "Mirror Image", "Misty Step", "Ray of Enfeeblement", "Shadow Blade", "Shatter", "Spider Climb", "Suggestion"],
+    3: ["Counterspell", "Dispel Magic", "Enemies Abound", "Fear", "Fly", "Gaseous Form", "Hunger of Hadar", "Hypnotic Pattern", "Intellect Fortress", "Magic Circle", "Major Image", "Remove Curse", "Spirit Shroud", "Summon Fey", "Summon Lesser Demons", "Summon Shadowspawn", "Summon Undead", "Thunder Step", "Tongues", "Vampiric Touch"],
+    4: ["Banishment", "Blight", "Charm Monster", "Dimension Door", "Elemental Bane", "Galder's Speedy Courier", "Hallucinatory Terrain", "Raulothim's Psychic Lance", "Shadow of Moil", "Sickening Radiance", "Summon Aberration", "Summon Greater Demon"],
+    5: ["Contact Other Plane", "Danse Macabre", "Dream", "Enervation", "Far Step", "Hold Monster", "Infernal Calling", "Mislead", "Negative Energy Flood", "Planar Binding", "Scrying", "Synaptic Static", "Teleportation Circle", "Wall of Light"],
+    6: ["Arcane Gate", "Circle of Death", "Conjure Fey", "Create Undead", "Eyebite", "Flesh to Stone", "Investiture of Flame", "Investiture of Ice", "Investiture of Stone", "Investiture of Wind", "Mass Suggestion", "Mental Prison", "Scatter", "Soul Cage", "Tasha's Otherworldly Guise", "True Seeing"],
+    7: ["Crown of Stars", "Dream of the Blue Veil", "Etherealness", "Finger of Death", "Forcecage", "Plane Shift", "Power Word Pain"],
+    8: ["Demiplane", "Dominate Monster", "Feeblemind", "Glibness", "Maddening Darkness", "Power Word Stun"],
+    9: ["Astral Projection", "Blade of Disaster", "Foresight", "Gate", "Imprisonment", "Power Word Kill", "Psychic Scream", "Shapechange", "True Polymorph", "Weird"]
+  },
+  "Wizard": {
+    0: ["Acid Splash", "Blade Ward", "Booming Blade", "Chill Touch", "Control Flames", "Create Bonfire", "Dancing Lights", "Encode Thoughts", "Fire Bolt", "Friends", "Frostbite", "Green-Flame Blade", "Gust", "Infestation", "Light", "Lightning Lure", "Mage Hand", "Mending", "Message", "Mind Sliver", "Minor Illusion", "Mold Earth", "Poison Spray", "Prestidigitation", "Ray of Frost", "Sapping Sting", "Shape Water", "Shocking Grasp", "Sword Burst", "Thunderclap", "Toll the Dead", "True Strike"],
+    1: ["Absorb Elements", "Alarm", "Burning Hands", "Catapult", "Cause Fear", "Charm Person", "Chromatic Orb", "Color Spray", "Comprehend Languages", "Detect Magic", "Disguise Self", "Distort Value", "Earth Tremor", "Expeditious Retreat", "False Life", "Feather Fall", "Find Familiar", "Fog Cloud", "Frost Fingers", "Grease", "Ice Knife", "Identify", "Illusory Script", "Jim's Magic Missile", "Jump", "Longstrider", "Mage Armor", "Magic Missile", "Protection from Evil and Good", "Ray of Sickness", "Shield", "Silent Image", "Sleep", "Snare", "Tasha's Caustic Brew", "Tasha's Hideous Laughter", "Tenser's Floating Disk", "Thunderwave", "Unseen Servant", "Witch Bolt"],
+    2: ["Acid Arrow", "Air Bubble", "Alter Self", "Arcane Lock", "Augury", "Blindness/Deafness", "Blur", "Cloud of Daggers", "Continual Flame", "Crown of Madness", "Darkness", "Darkvision", "Detect Thoughts", "Dragon's Breath", "Dust Devil", "Earthbind", "Enhance Ability", "Enlarge/Reduce", "Flaming Sphere", "Gentle Repose", "Gust of Wind", "Hold Person", "Invisibility", "Kinetic Jaunt", "Knock", "Levitate", "Locate Object", "Magic Mouth", "Magic Weapon", "Maximilian's Earthen Grasp", "Melf's Acid Arrow", "Mind Spike", "Mirror Image", "Misty Step", "Nystul's Magic Aura", "Phantasmal Force", "Pyrotechnics", "Ray of Enfeeblement", "Rope Trick", "Scorching Ray", "See Invisibility", "Shadow Blade", "Shatter", "Skywrite", "Snilloc's Snowball Swarm", "Spider Climb", "Suggestion", "Tasha's Mind Whip", "Vortex Warp", "Web", "Wither and Bloom"],
+    3: ["Animate Dead", "Ashardalon's Stride", "Bestow Curse", "Blink", "Catnap", "Clairvoyance", "Counterspell", "Dispel Magic", "Enemies Abound", "Erupting Earth", "Fast Friends", "Fear", "Feign Death", "Fireball", "Flame Arrows", "Fly", "Galder's Tower", "Gaseous Form", "Glyph of Warding", "Haste", "Hypnotic Pattern", "Inciting Greed", "Intellect Fortress", "Leomund's Tiny Hut", "Life Transference", "Lightning Bolt", "Magic Circle", "Major Image", "Melf's Minute Meteors", "Nondetection", "Phantom Steed", "Protection from Energy", "Remove Curse", "Sending", "Sleet Storm", "Slow", "Speak with Dead", "Spirit Shroud", "Stinking Cloud", "Summon Fey", "Summon Lesser Demons", "Summon Shadowspawn", "Summon Undead", "Thunder Step", "Tiny Servant", "Tongues", "Vampiric Touch", "Wall of Sand", "Wall of Water", "Water Breathing"],
+    4: ["Arcane Eye", "Banishment", "Blight", "Charm Monster", "Confusion", "Conjure Minor Elementals", "Control Water", "Dimension Door", "Divination", "Elemental Bane", "Evard's Black Tentacles", "Fabricate", "Fire Shield", "Galder's Speedy Courier", "Greater Invisibility", "Hallucinatory Terrain", "Ice Storm", "Leomund's Secret Chest", "Locate Creature", "Mordenkainen's Faithful Hound", "Mordenkainen's Private Sanctum", "Otiluke's Resilient Sphere", "Phantasmal Killer", "Polymorph", "Raulothim's Psychic Lance", "Sickening Radiance", "Stone Shape", "Stoneskin", "Storm Sphere", "Summon Aberration", "Summon Construct", "Summon Elemental", "Summon Greater Demon", "Vitriolic Sphere", "Wall of Fire", "Watery Sphere"],
+    5: ["Animate Objects", "Bigby's Hand", "Cloudkill", "Cone of Cold", "Conjure Elemental", "Contact Other Plane", "Control Winds", "Creation", "Danse Macabre", "Dawn", "Dominate Person", "Dream", "Enervation", "Far Step", "Geas", "Hold Monster", "Immolation", "Infernal Calling", "Legend Lore", "Mislead", "Modify Memory", "Negative Energy Flood", "Passwall", "Planar Binding", "Rary's Telepathic Bond", "Scrying", "Seeming", "Skill Empowerment", "Steel Wind Strike", "Summon Draconic Spirit", "Synaptic Static", "Telekinesis", "Teleportation Circle", "Transmute Rock", "Wall of Force", "Wall of Light", "Wall of Stone"],
+    6: ["Arcane Gate", "Chain Lightning", "Circle of Death", "Contingency", "Create Homunculus", "Create Undead", "Disintegrate", "Drawmij's Instant Summons", "Eyebite", "Flesh to Stone", "Globe of Invulnerability", "Guards and Wards", "Investiture of Flame", "Investiture of Ice", "Investiture of Stone", "Investiture of Wind", "Magic Jar", "Mass Suggestion", "Mental Prison", "Move Earth", "Otiluke's Freezing Sphere", "Otto's Irresistible Dance", "Planar Ally", "Programmed Illusion", "Scatter", "Soul Cage", "Summon Fiend", "Sunbeam", "Tasha's Otherworldly Guise", "Tenser's Transformation", "True Seeing", "Wall of Ice"],
+    7: ["Create Magen", "Crown of Stars", "Delayed Blast Fireball", "Draconic Transformation", "Dream of the Blue Veil", "Etherealness", "Finger of Death", "Forcecage", "Mirage Arcane", "Mordenkainen's Magnificent Mansion", "Mordenkainen's Sword", "Plane Shift", "Power Word Pain", "Prismatic Spray", "Project Image", "Reverse Gravity", "Sequester", "Simulacrum", "Symbol", "Teleport", "Tether Essence", "Whirlwind"],
+    8: ["Abi-Dalzim's Horrid Wilting", "Antimagic Field", "Antipathy/Sympathy", "Clone", "Control Weather", "Dark Star", "Demiplane", "Dominate Monster", "Feeblemind", "Incendiary Cloud", "Maddening Darkness", "Maze", "Mind Blank", "Power Word Stun", "Reality Break", "Sunburst", "Telepathy"],
+    9: ["Astral Projection", "Blade of Disaster", "Foresight", "Gate", "Imprisonment", "Mass Polymorph", "Meteor Swarm", "Power Word Kill", "Prismatic Wall", "Psychic Scream", "Shapechange", "Time Stop", "True Polymorph", "Weird", "Wish"]
+  }
 };
 
 // MASTER LIST OF SPECIES FEATURES (2024 / 5e Standard)
@@ -396,25 +605,48 @@ const WEAPON_OPTIONS = ["Simple Weapons", "Martial Weapons"];
 const LANGUAGE_OPTIONS = ["Common", "Dwarvish", "Elvish", "Giant", "Gnomish", "Goblin", "Halfling", "Orc", "Abyssal", "Celestial", "Draconic", "Infernal", "Primordial", "Sylvan", "Undercommon"];
 const SKILLS_LIST = ["Acrobatics", "Animal Handling", "Arcana", "Athletics", "Deception", "History", "Insight", "Intimidation", "Investigation", "Medicine", "Nature", "Perception", "Performance", "Persuasion", "Religion", "Sleight of Hand", "Stealth", "Survival"];
 const TOOLS_LIST = ["Thieves' Tools", "Herbalism Kit", "Disguise Kit", "Poisoner's Kit", "Navigator's Tools", "Alchemist's Supplies", "Brewer's Supplies", "Calligrapher's Supplies", "Carpenter's Tools", "Cobbler's Tools", "Cook's Utensils", "Glassblower's Tools", "Jeweler's Tools", "Leatherworker's Tools", "Mason's Tools", "Painter's Supplies", "Potter's Tools", "Smith's Tools", "Tinker's Tools", "Weaver's Tools", "Woodcarver's Tools", "Dice Set", "Playing Card Set", "Bagpipes", "Drum", "Flute", "Lute", "Lyre", "Horn", "Viol"];
+const calcMod = (score) => Math.floor((score - 10) / 2);
 
 function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
   // Main State
   const [formData, setFormData] = useState({
+    // Identity & Vitals
     name: "", race: "", char_class: "", subclass: "", level: 1, 
-    background: "", alignment: "", hp_max: 10, ac: 10, speed: 30, initiative: 0,
-    hit_dice_total: "1d8",
+    background: "", alignment: "", hp_max: 10, ac: 10, speed: 30, initiative: 0, hit_dice_total: "1d8",
+    proficiency_bonus: 2, 
+    
+    // Stats
     str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10,
     
+    // Proficiencies & Features
     armor_prof: {}, weapon_prof: {}, languages: {}, tools_prof: {}, skill_prof: {},
-    feats: [], 
-    class_features: [], // AUTO-GENERATED LIST
-    species_features: [], // NEW AUTO-GENERATED LIST
+    feats: [], class_features: [], species_features: [],
 
+    // --- NEW SPELLCASTING ENGINE ---
+    spell_save_dc: 0, 
+    spell_attack_mod: 0,
+    
+    // Spells: Key is Level (0=Cantrip, 1-9=Spell Levels), Value is Array of Strings
+    spells: { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [] },
+    
+    // Slots: Key is Level. Tracks Max (from Class Table) and Current (User Input)
+    slots: {
+      1: {max: 0, curr: 0}, 2: {max: 0, curr: 0}, 3: {max: 0, curr: 0},
+      4: {max: 0, curr: 0}, 5: {max: 0, curr: 0}, 6: {max: 0, curr: 0},
+      7: {max: 0, curr: 0}, 8: {max: 0, curr: 0}, 9: {max: 0, curr: 0}
+    },
+
+    // Custom Input Fields
     custom_armor: "", custom_weapon: "", custom_language: "", custom_skills: "", custom_tools: "", custom_features: ""
   });
 
   const [isCustomRace, setIsCustomRace] = useState(false);
   const [isCustomClass, setIsCustomClass] = useState(false);
+  const [tempSpells, setTempSpells] = useState({0:"", 1:"", 2:"", 3:"", 4:"", 5:"", 6:"", 7:"", 8:"", 9:""});
+  // Check if class is a caster (not "none") and not undefined
+  const isCaster = CLASS_DATA[formData.char_class] && CLASS_DATA[formData.char_class].caster_type !== "none";
+  // Get the casting stat (default to 'int' to prevent crash)
+  const castingStat = SPELL_ABILITY[formData.char_class] || "int";
 
   // --- AUTOMATION: Hit Dice ---
   useEffect(() => {
@@ -438,7 +670,7 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
     }
   }, [formData.char_class, formData.level]);
 
-  // --- AUTOMATION: Species Features (NEW) ---
+  // --- AUTOMATION: Species Features ---
   useEffect(() => {
     if (SPECIES_FEATURES[formData.race]) {
       setFormData(prev => ({ ...prev, species_features: SPECIES_FEATURES[formData.race] }));
@@ -447,12 +679,67 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
     }
   }, [formData.race]);
 
+  // --- AUTOMATION: Spell Slots ---
+  useEffect(() => {
+    const type = CLASS_DATA[formData.char_class]?.caster_type;
+    const lvl = formData.level;
 
-  // --- LOAD DATA ---
+    if (type && type !== "none" && type !== "psion") {
+      const table = SLOT_TABLE[type];
+      const slotsRow = table[lvl - 1] || [0,0,0,0,0,0,0,0,0];
+
+      setFormData(prev => {
+        const newSlots = { ...prev.slots };
+        slotsRow.forEach((amt, idx) => {
+          const spellLvl = idx + 1;
+          if (spellLvl <= 9) {
+            newSlots[spellLvl] = { 
+              max: amt, 
+              // If max drops (e.g. de-leveling), clamp the current slots so they don't exceed max
+              curr: Math.min(prev.slots[spellLvl].curr, amt) 
+            };
+          }
+        });
+        return { ...prev, slots: newSlots };
+      });
+    }
+  }, [formData.char_class, formData.level]);
+
+
+// --- LOAD DATA ---
   useEffect(() => {
     if (characterToEdit) {
       const ext = characterToEdit.extended_data || {};
-      
+
+      // 1. MIGRATION: Convert old text/array data to new Level 0-9 Object
+      let loadedSpells = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [] };
+
+      // Handle "Cantrips" 
+      if (Array.isArray(ext.cantrips)) {
+        loadedSpells[0] = ext.cantrips;
+      } else if (typeof ext.cantrips === 'string' && ext.cantrips.length > 0) {
+        loadedSpells[0] = ext.cantrips.split(", ").map(s => s.trim());
+      }
+
+      // Handle "Level 1 Spells" 
+      if (Array.isArray(ext.spells_lvl1)) {
+        loadedSpells[1] = ext.spells_lvl1;
+      } else if (typeof ext.spells_lvl1 === 'string' && ext.spells_lvl1.length > 0) {
+        loadedSpells[1] = ext.spells_lvl1.split(", ").map(s => s.trim());
+      }
+
+      // If new format exists, merge it in
+      if (ext.spells) {
+        loadedSpells = { ...loadedSpells, ...ext.spells };
+      }
+
+      // 2. LOAD SLOT DATA
+      const loadedSlots = ext.slots || {
+        1: {max: 0, curr: 0}, 2: {max: 0, curr: 0}, 3: {max: 0, curr: 0},
+        4: {max: 0, curr: 0}, 5: {max: 0, curr: 0}, 6: {max: 0, curr: 0},
+        7: {max: 0, curr: 0}, 8: {max: 0, curr: 0}, 9: {max: 0, curr: 0}
+      };
+
       setFormData({
         name: characterToEdit.name,
         race: characterToEdit.race,
@@ -466,6 +753,8 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
         speed: characterToEdit.speed,
         initiative: characterToEdit.initiative,
         hit_dice_total: characterToEdit.hit_dice_total || "1d8",
+        proficiency_bonus: 2, 
+
         str: characterToEdit.stats.str,
         dex: characterToEdit.stats.dex,
         con: characterToEdit.stats.con,
@@ -478,10 +767,16 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
         languages: ext.languages || {},
         tools_prof: ext.tools_prof || {},
         skill_prof: ext.skill_prof || {},
-        
+
         feats: ext.feats || [],
         class_features: ext.class_features || [], 
-        species_features: ext.species_features || [], // Load saved species features
+        species_features: ext.species_features || [],
+
+        // NEW SPELL DATA
+        spells: loadedSpells,
+        slots: loadedSlots,
+        spell_save_dc: 0, 
+        spell_attack_mod: 0,
 
         custom_armor: ext.custom_armor || "",
         custom_weapon: ext.custom_weapon || "",
@@ -494,11 +789,22 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
       setIsCustomRace(!RACES.includes(characterToEdit.race) && characterToEdit.race !== "");
       setIsCustomClass(!Object.keys(CLASS_DATA).includes(characterToEdit.char_class) && characterToEdit.char_class !== "");
     } else {
+      // RESET FORM
       setFormData({
         name: "", race: "", char_class: "", subclass: "", level: 1, 
         background: "", alignment: "", hp_max: 10, ac: 10, speed: 30, initiative: 0, hit_dice_total: "1d8",
-        str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10,
-        armor_prof: {}, weapon_prof: {}, languages: {}, tools_prof: {}, skill_prof: {}, feats: [], class_features: [], species_features: [],
+        proficiency_bonus: 2, str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10,
+        armor_prof: {}, weapon_prof: {}, languages: {}, tools_prof: {}, skill_prof: {},
+        feats: [], class_features: [], species_features: [],
+
+        spell_save_dc: 0, spell_attack_mod: 0,
+        spells: { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [] },
+        slots: {
+          1: {max: 0, curr: 0}, 2: {max: 0, curr: 0}, 3: {max: 0, curr: 0},
+          4: {max: 0, curr: 0}, 5: {max: 0, curr: 0}, 6: {max: 0, curr: 0},
+          7: {max: 0, curr: 0}, 8: {max: 0, curr: 0}, 9: {max: 0, curr: 0}
+        },
+
         custom_armor: "", custom_weapon: "", custom_language: "", custom_skills: "", custom_tools: "", custom_features: ""
       });
       setIsCustomRace(false);
@@ -543,7 +849,78 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
     setFormData(prev => ({...prev, feats: prev.feats.filter(f => f !== featToRemove)}));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSlotChange = (level, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      slots: {
+        ...prev.slots,
+        [level]: { ...prev.slots[level], [field]: parseInt(value) || 0 }
+      }
+    }));
+  };
+
+  const addSpell = (lvl, spellName) => {
+    if (!spellName) return;
+    if (!formData.spells[lvl].includes(spellName)) {
+      setFormData(prev => ({
+        ...prev,
+        spells: { ...prev.spells, [lvl]: [...prev.spells[lvl], spellName] }
+      }));
+    }
+  };
+
+  const removeSpell = (lvl, spellName) => {
+    setFormData(prev => ({
+      ...prev,
+      spells: { ...prev.spells, [lvl]: prev.spells[lvl].filter(s => s !== spellName) }
+    }));
+  };
+  
+  // Helper to render a row for Level X spells
+  const renderSpellRow = (lvl) => {
+    const hasSlots = formData.slots[lvl] && formData.slots[lvl].max > 0;
+    const hasSpells = formData.spells[lvl] && formData.spells[lvl].length > 0;
+    
+    // Hide row if no slots available AND no spells added (except cantrips which always show)
+    if (lvl > 0 && !hasSlots && !hasSpells) return null;
+
+    const label = lvl === 0 ? "Cantrips (0)" : `Level ${lvl}`;
+    
+    return (
+      <div key={lvl} style={{ marginTop: "10px", paddingBottom: "10px", borderBottom: "1px dashed #ddd" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "5px" }}>
+            <label style={{fontWeight: "bold", color: "#4A148C"}}>{label}</label>
+            {lvl > 0 && hasSlots && (
+               <div style={{fontSize: "0.9em"}}>
+                 Slots: 
+                 <input type="number" value={formData.slots[lvl].curr} onChange={(e) => handleSlotChange(lvl, 'curr', e.target.value)} style={{width: "40px", marginLeft: "5px", textAlign: "center"}} />
+                 <span style={{margin: "0 5px"}}>/</span>
+                 <input value={formData.slots[lvl].max} readOnly style={{width: "40px", background: "#f3e5f5", textAlign: "center", border: "none"}} />
+               </div>
+            )}
+        </div>
+        <div style={{display: "flex", gap: "5px", marginBottom: "5px"}}>
+             {/* Note: Ensure SPELL_LISTS is defined in your file, or remove this select if you don't use it */}
+             <select onChange={(e) => { addSpell(lvl, e.target.value); e.target.value = ""; }} style={{flex: 1}}>
+                 <option value="">+ Add {lvl === 0 ? "Cantrip" : "Spell"}</option>
+                 {SPELL_LISTS[formData.char_class]?.[lvl]?.map(s => <option key={s} value={s}>{s}</option>)}
+             </select>
+             
+             <input placeholder="Custom..." value={tempSpells[lvl]} onChange={e => setTempSpells(prev => ({...prev, [lvl]: e.target.value}))} onKeyDown={e => {if(e.key === 'Enter'){e.preventDefault(); addSpell(lvl, tempSpells[lvl]); setTempSpells(prev => ({...prev, [lvl]: ""}));}}} style={{width: "80px"}} />
+             <button type="button" onClick={() => {addSpell(lvl, tempSpells[lvl]); setTempSpells(prev => ({...prev, [lvl]: ""}));}}>Add</button>
+        </div>
+        <div style={{display: "flex", flexWrap: "wrap", gap: "5px"}}>
+             {formData.spells[lvl].map(s => (
+               <span key={s} style={{background: lvl === 0 ? "#E1BEE7" : "#D1C4E9", padding: "2px 8px", borderRadius: "10px", fontSize: "0.85em", display: "flex", alignItems: "center"}}>
+                 {s} <span onClick={() => removeSpell(lvl, s)} style={{cursor: "pointer", fontWeight: "bold", marginLeft: "6px", color: "#666"}}>x</span>
+               </span>
+             ))}
+        </div>
+      </div>
+    );
+  };
+
+const handleSubmit = async (e) => {
     e.preventDefault();
     
     const payload = {
@@ -573,8 +950,13 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
         skill_prof: formData.skill_prof,
         feats: formData.feats,
         class_features: formData.class_features, 
-        species_features: formData.species_features, // SAVE SPECIES FEATURES
+        species_features: formData.species_features,
         
+        // --- NEW SPELL DATA ---
+        spells: formData.spells, // Saves the arrays for Levels 0-9
+        slots: formData.slots,   // Saves the slot tracking for Levels 1-9
+        // ----------------------
+
         custom_armor: formData.custom_armor,
         custom_weapon: formData.custom_weapon,
         custom_language: formData.custom_language,
@@ -656,6 +1038,30 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
             <label>HD: <input name="hit_dice_total" value={formData.hit_dice_total} readOnly style={{width: "60px", background: "#f0f0f0", textAlign: "center"}} /></label>
         </div>
       </fieldset>
+
+      {/* --- SPELLCASTING --- */}
+      {isCaster && (
+        <fieldset style={{ padding: "1rem", border: "1px solid #673AB7", background: "#fff", marginTop: "1rem" }}>
+          <legend style={{color: "#4A148C", fontWeight: "bold", fontSize: "1.1em"}}>
+            Spellcasting ({castingStat.toUpperCase()})
+          </legend>
+          
+          <div style={{ display: "flex", gap: "20px", marginBottom: "15px", justifyContent: "space-around", background: "#f3e5f5", padding: "10px", borderRadius: "5px" }}>
+             <div style={{textAlign: "center"}}>
+                <div style={{fontSize: "0.8em", textTransform: "uppercase", letterSpacing: "1px"}}>Save DC</div>
+                <div style={{fontSize: "1.8em", fontWeight: "bold", color: "#4A148C"}}>{formData.spell_save_dc}</div>
+             </div>
+             <div style={{textAlign: "center"}}>
+                <div style={{fontSize: "0.8em", textTransform: "uppercase", letterSpacing: "1px"}}>Attack Mod</div>
+                <div style={{fontSize: "1.8em", fontWeight: "bold", color: "#4A148C"}}>+{formData.spell_attack_mod}</div>
+             </div>
+          </div>
+
+          {/* Render Levels 0 through 9 */}
+          { [0,1,2,3,4,5,6,7,8,9].map(lvl => renderSpellRow(lvl)) }
+          
+        </fieldset>
+      )}
 
       {/* --- CLASS FEATURES (Visual Fix Applied) --- */}
       <div style={{ border: "1px solid #ccc", padding: "1rem", marginTop: "1rem", borderRadius: "5px", background: "#fff" }}>
