@@ -70,7 +70,6 @@ const MARTIAL_WEAPONS = [
 ];
 
 // --- BACKGROUNDS (Origins - Ability Scores & Skills) ---
-// Simplified list for 2024 Origins logic
 const BACKGROUNDS = {
   "Acolyte": { stats: ["wis", "int"], skills: ["Insight", "Religion"] },
   "Charlatan": { stats: ["cha", "dex"], skills: ["Deception", "Sleight of Hand"] },
@@ -831,7 +830,11 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
   const [tempSpells, setTempSpells] = useState({0:"", 1:"", 2:"", 3:"", 4:"", 5:"", 6:"", 7:"", 8:"", 9:""});
   const subSpellData = SUBCLASS_SPELL_DATA[formData.subclass];
   const classData = CLASS_DATA[formData.char_class];
-  const [newItem, setNewItem] = useState({ type: "Weapon", name: "", isCustom: false });
+  const [newItem, setNewItem] = useState({ 
+    type: "Weapon", name: "", isCustom: false, 
+    ac: 10, armorType: "light", stealth: false,           // Armor Params
+    damage: "1d6", dmgType: "Slashing", properties: ""    // Weapon Params
+  });
 
   // Caster Type: Check Subclass first ("third"), then Class ("full"/"half"), otherwise "none"
   const casterType = subSpellData ? subSpellData.type : (classData?.caster_type || "none");
@@ -861,38 +864,33 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
 
     const calculatedHP = (hitDie + conMod) + ((avgDie + conMod) * (lvl - 1)) + toughFeat;
 
-// 3. AC CALCULATION
-    let armor;
-    
-    // Check if using Custom Armor logic
-    if (formData.equipped_armor === "Custom") {
-      armor = { 
-        base: parseInt(formData.custom_armor_stats.base) || 10, 
-        type: formData.custom_armor_stats.type 
-      };
-    } else {
-      // Otherwise use the standard table
-      armor = ARMOR_TABLE[formData.equipped_armor] || ARMOR_TABLE["None"];
+    // 3. AC CALCULATION
+    let armor = ARMOR_TABLE[formData.equipped_armor];
+
+    // If not in standard table, check Inventory for custom item stats
+    if (!armor) {
+      const invItem = formData.inventory.find(i => i.name === formData.equipped_armor);
+      if (invItem && invItem.stats) {
+        armor = invItem.stats;
+      }
     }
+    
+    // Fallback if nothing found
+    if (!armor) armor = ARMOR_TABLE["None"];
 
     let calculatedAC = armor.base;
-
+    // ... (Keep the rest of the logic for Dex/Shield/Monk/Barbarian exactly the same) ...
     if (armor.type === "light" || armor.type === "none") {
       calculatedAC += dexMod;
-
-      // Barbarian Unarmored Defense (Con)
       if (formData.char_class === "Barbarian" && armor.type === "none" && !formData.shield_equipped) {
         calculatedAC = 10 + dexMod + conMod;
       }
-      // Monk Unarmored Defense (Wis)
       if (formData.char_class === "Monk" && armor.type === "none" && !formData.shield_equipped) {
         calculatedAC = 10 + dexMod + calcMod(formData.wis);
       }
     } else if (armor.type === "medium") {
-      calculatedAC += Math.min(dexMod, 2); // Cap Dex at +2
+      calculatedAC += Math.min(dexMod, 2);
     }
-    // Heavy armor gets no Dex bonus
-
     if (formData.shield_equipped) calculatedAC += 2;
 
     // 4. INITIATIVE (Dex + Alert Feat)
@@ -1210,11 +1208,42 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
 // --- INVENTORY HANDLERS ---
   const handleAddItem = () => {
     if (!newItem.name) return;
+    
+    const itemData = { 
+      name: newItem.name, 
+      type: newItem.type, 
+      id: Date.now() 
+    };
+
+    // 1. Capture Custom Armor Stats
+    if (newItem.type === "Armor" && newItem.isCustom) {
+      itemData.stats = {
+        base: parseInt(newItem.ac) || 10,
+        type: newItem.armorType,
+        stealth_dis: newItem.stealth // New: Stealth Disadvantage
+      };
+    }
+    
+    // 2. Capture Custom Weapon Stats (NEW)
+    if (newItem.type === "Weapon" && newItem.isCustom) {
+      itemData.stats = {
+        damage: newItem.damage,
+        dmgType: newItem.dmgType,
+        properties: newItem.properties
+      };
+    }
+
     setFormData(prev => ({
       ...prev,
-      inventory: [...prev.inventory, { name: newItem.name, type: newItem.type, id: Date.now() }]
+      inventory: [...prev.inventory, itemData]
     }));
-    setNewItem(prev => ({ ...prev, name: "" })); // Reset input but keep type
+    
+    // Reset form to defaults
+    setNewItem({ 
+      type: "Weapon", name: "", isCustom: false, 
+      ac: 10, armorType: "light", stealth: false,
+      damage: "1d6", dmgType: "Slashing", properties: "" 
+    });
   };
 
   const handleRemoveItem = (id) => {
@@ -1225,19 +1254,8 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
   };
 
   const handleEquip = (item) => {
-    if (item.type !== "Armor") return;
-
-    // 1. Standard Armor: Just set the dropdown
-    if (ARMOR_TABLE[item.name]) {
+    if (item.type === "Armor") {
       setFormData(prev => ({ ...prev, equipped_armor: item.name }));
-    } 
-    // 2. Custom Armor: Switch mode and pre-fill name
-    else {
-      setFormData(prev => ({
-        ...prev,
-        equipped_armor: "Custom",
-        custom_armor_stats: { ...prev.custom_armor_stats, name: item.name }
-      }));
     }
   };
 
@@ -1351,7 +1369,7 @@ const handleSubmit = async (e) => {
         </div>
       </fieldset>
 
-      {/* VITALS & EQUIPMENT (Updated for Logic Engine) */}
+      {/* VITALS & EQUIPMENT (Updated: Inventory Only) */}
       <fieldset style={{ padding: "1rem", border: "1px solid #ccc", background: "#fff" }}>
         <legend><strong>Vitals & Equipment</strong></legend>
         
@@ -1371,7 +1389,6 @@ const handleSubmit = async (e) => {
             </div>
             <div style={{textAlign: "center"}}>
                 <div style={{fontSize: "0.8em", color: "#666"}}>Speed</div>
-                {/* Manual Input for Speed kept here */}
                 <input type="number" name="speed" value={formData.speed} onChange={handleChange} style={{width: "40px", textAlign: "center", fontWeight: "bold", border: "none", borderBottom: "1px solid #ccc", fontSize: "1.1em"}} />
             </div>
             <div style={{textAlign: "center"}}>
@@ -1384,44 +1401,31 @@ const handleSubmit = async (e) => {
         <div style={{borderTop: "1px solid #eee", paddingTop: "10px"}}>
           <div style={{display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap"}}>
                <label style={{fontSize: "0.9em", fontWeight: "bold"}}>Armor:</label>
+               
                <select name="equipped_armor" value={formData.equipped_armor} onChange={handleChange} style={{minWidth: "150px", padding: "5px"}}>
                    <option value="None">None (Unarmored)</option>
-                   {Object.keys(ARMOR_TABLE).filter(k => k !== "None").map(a => <option key={a} value={a}>{a} (AC {ARMOR_TABLE[a].base})</option>)}
-                   <option value="Custom" style={{fontWeight: "bold", color: "#673AB7"}}>+ Custom / Magic Armor</option>
+                   
+                   {/* Only show items currently in Inventory */}
+                   <optgroup label="From Inventory">
+                     {formData.inventory.filter(item => item.type === "Armor").map(item => {
+                        const stats = item.stats || ARMOR_TABLE[item.name];
+                        return <option key={item.id} value={item.name}>{item.name} {stats ? `(AC ${stats.base})` : ""}</option>;
+                     })}
+                   </optgroup>
                </select>
-
-               {/* Custom Armor Stats Inputs */}
-               {formData.equipped_armor === "Custom" && (
-                 <div style={{display: "flex", gap: "5px", background: "#f3e5f5", padding: "5px", borderRadius: "4px", alignItems: "center"}}>
-                    <input 
-                      placeholder="Name" 
-                      value={formData.custom_armor_stats.name} 
-                      onChange={e => setFormData(prev => ({...prev, custom_armor_stats: {...prev.custom_armor_stats, name: e.target.value}}))}
-                      style={{width: "80px", padding: "3px"}}
-                    />
-                    <input 
-                      type="number" placeholder="AC" 
-                      value={formData.custom_armor_stats.base} 
-                      onChange={e => setFormData(prev => ({...prev, custom_armor_stats: {...prev.custom_armor_stats, base: parseInt(e.target.value)}}))}
-                      style={{width: "40px", padding: "3px"}}
-                    />
-                    <select 
-                      value={formData.custom_armor_stats.type} 
-                      onChange={e => setFormData(prev => ({...prev, custom_armor_stats: {...prev.custom_armor_stats, type: e.target.value}}))}
-                      style={{padding: "3px"}}
-                    >
-                      <option value="light">Light (Full Dex)</option>
-                      <option value="medium">Medium (Max +2)</option>
-                      <option value="heavy">Heavy (No Dex)</option>
-                    </select>
-                 </div>
-               )}
 
                <label style={{fontSize: "0.9em", display: "flex", alignItems: "center", cursor: "pointer", marginLeft: "10px"}}>
                   <input type="checkbox" name="shield_equipped" checked={formData.shield_equipped} onChange={e => setFormData(prev => ({...prev, shield_equipped: e.target.checked}))} style={{marginRight: "5px"}}/> 
                   +Shield
                </label>
           </div>
+          
+          {/* Helper Text if no armor is available to equip */}
+          {formData.inventory.filter(i => i.type === "Armor").length === 0 && (
+            <div style={{fontSize: "0.8em", color: "#d32f2f", marginTop: "5px"}}>
+              * Add Armor to your Inventory below to see it here.
+            </div>
+          )}
         </div>
       </fieldset>
 
@@ -1577,14 +1581,41 @@ const handleSubmit = async (e) => {
 
           {/* DYNAMIC INPUTS */}
           {newItem.isCustom || newItem.type === "Custom" ? (
-             <div style={{display:"flex", flex: 1, gap: "5px"}}>
+             <div style={{display:"flex", flex: 1, gap: "5px", alignItems: "center", flexWrap: "wrap"}}>
                 <input 
                   placeholder={`Custom ${newItem.type} Name`} 
                   value={newItem.name} 
                   onChange={e => setNewItem(prev => ({ ...prev, name: e.target.value }))} 
-                  style={{ flex: 1, padding: "5px" }}
+                  style={{ flex: 1, padding: "5px", minWidth: "100px" }}
                   autoFocus
                 />
+                
+                {/* CUSTOM ARMOR PARAMS */}
+                {newItem.type === "Armor" && (
+                   <>
+                     <input type="number" placeholder="AC" value={newItem.ac} onChange={e => setNewItem(prev => ({ ...prev, ac: e.target.value }))} style={{width: "40px", padding: "5px"}} />
+                     <select value={newItem.armorType} onChange={e => setNewItem(prev => ({ ...prev, armorType: e.target.value }))} style={{padding: "5px"}}>
+                       <option value="light">Light</option><option value="medium">Medium</option><option value="heavy">Heavy</option>
+                     </select>
+                     <label style={{fontSize: "0.8em", display: "flex", alignItems: "center"}}>
+                        <input type="checkbox" checked={newItem.stealth} onChange={e => setNewItem(prev => ({...prev, stealth: e.target.checked}))} /> 
+                        Stealth Dis.
+                     </label>
+                   </>
+                )}
+
+                {/* CUSTOM WEAPON PARAMS */}
+                {newItem.type === "Weapon" && (
+                   <>
+                     <input placeholder="Dmg (1d8)" value={newItem.damage} onChange={e => setNewItem(prev => ({ ...prev, damage: e.target.value }))} style={{width: "60px", padding: "5px"}} />
+                     <select value={newItem.dmgType} onChange={e => setNewItem(prev => ({ ...prev, dmgType: e.target.value }))} style={{padding: "5px"}}>
+                       <option>Bludgeoning</option><option>Piercing</option><option>Slashing</option>
+                       <option>Fire</option><option>Cold</option><option>Lightning</option><option>Psychic</option><option>Radiant</option><option>Necrotic</option><option>Force</option>
+                     </select>
+                     <input placeholder="Props (Finesse, etc)" value={newItem.properties} onChange={e => setNewItem(prev => ({ ...prev, properties: e.target.value }))} style={{width: "100px", padding: "5px"}} />
+                   </>
+                )}
+
                 {newItem.type !== "Custom" && <button type="button" onClick={() => setNewItem(prev => ({...prev, isCustom: false, name: ""}))} style={{fontSize: "0.8em"}}>Back</button>}
              </div>
           ) : (
@@ -1633,7 +1664,23 @@ const handleSubmit = async (e) => {
               return (
                 <li key={item.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 0", borderBottom: "1px solid #eee" }}>
                   <span>
-                    <strong>{item.name}</strong> <span style={{ fontSize: "0.8em", color: "#666", marginLeft: "5px" }}>({item.type})</span>
+                    <strong>{item.name}</strong> 
+                    <span style={{ fontSize: "0.8em", color: "#666", marginLeft: "5px" }}>({item.type})</span>
+                    
+                    {/* --- NEW: Display Weapon Stats --- */}
+                    {item.stats && item.type === "Weapon" && (
+                       <span style={{fontSize: "0.8em", color: "#444", marginLeft: "5px", fontStyle: "italic"}}>
+                          — {item.stats.damage} {item.stats.dmgType} {item.stats.properties ? `(${item.stats.properties})` : ""}
+                       </span>
+                    )}
+
+                    {/* --- NEW: Display Armor Stats --- */}
+                    {item.stats && item.type === "Armor" && (
+                       <span style={{fontSize: "0.8em", color: "#444", marginLeft: "5px", fontStyle: "italic"}}>
+                          — AC {item.stats.base} ({item.stats.type}) {item.stats.stealth_dis ? "[Dis]" : ""}
+                       </span>
+                    )}
+
                     {/* Badge */}
                     {isEquipped && <span style={{marginLeft: "10px", fontSize: "0.8em", color: "#2E7D32", fontWeight: "bold", background: "#E8F5E9", padding: "2px 6px", borderRadius: "4px"}}>EQUIPPED</span>}
                   </span>
