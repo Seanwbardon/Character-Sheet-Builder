@@ -5,20 +5,20 @@ const RACES = ["Human", "Elf", "Dwarf", "Halfling", "Orc", "Tiefling", "Gnome", 
 
 // Map Classes to their Hit Die size
 const CLASS_DATA = {
-  "Artificer": { hit_die: "d8", caster_type: "half_up" }, 
-  "Barbarian": { hit_die: "d12", caster_type: "none" },
-  "Bard": { hit_die: "d8", caster_type: "full" },
-  "Cleric": { hit_die: "d8", caster_type: "full" },
-  "Druid": { hit_die: "d8", caster_type: "full" },
-  "Fighter": { hit_die: "d10", caster_type: "none" },
-  "Monk": { hit_die: "d8", caster_type: "none" },
-  "Paladin": { hit_die: "d10", caster_type: "half" },
-  "Psion": { hit_die: "d6", caster_type: "psion" }, 
-  "Ranger": { hit_die: "d10", caster_type: "half" },
-  "Rogue": { hit_die: "d8", caster_type: "none" },
-  "Sorcerer": { hit_die: "d6", caster_type: "full" },
-  "Warlock": { hit_die: "d8", caster_type: "pact" },
-  "Wizard": { hit_die: "d6", caster_type: "full" }
+  "Artificer": { hit_die: 8, caster_type: "half_up", saves: ["con", "int"] }, 
+  "Barbarian": { hit_die: 12, caster_type: "none", saves: ["str", "con"] },
+  "Bard": { hit_die: 8, caster_type: "full", saves: ["dex", "cha"] },
+  "Cleric": { hit_die: 8, caster_type: "full", saves: ["wis", "cha"] },
+  "Druid": { hit_die: 8, caster_type: "full", saves: ["int", "wis"] },
+  "Fighter": { hit_die: 10, caster_type: "none", saves: ["str", "con"] },
+  "Monk": { hit_die: 8, caster_type: "none", saves: ["str", "dex"] },
+  "Paladin": { hit_die: 10, caster_type: "half", saves: ["wis", "cha"] },
+  "Psion": { hit_die: 6, caster_type: "psion", saves: ["int", "wis"] }, 
+  "Ranger": { hit_die: 10, caster_type: "half", saves: ["str", "dex"] },
+  "Rogue": { hit_die: 8, caster_type: "none", saves: ["dex", "int"] },
+  "Sorcerer": { hit_die: 6, caster_type: "full", saves: ["con", "cha"] },
+  "Warlock": { hit_die: 8, caster_type: "pact", saves: ["wis", "cha"] },
+  "Wizard": { hit_die: 6, caster_type: "full", saves: ["int", "wis"] }
 };
 
 // --- SUBCLASS OPTIONS (Names Only) ---
@@ -37,6 +37,109 @@ const SUBCLASS_OPTIONS = {
   "Sorcerer": ["Draconic Bloodline", "Wild Magic"],
   "Warlock": ["The Archfey", "The Fiend", "The Great Old One"],
   "Wizard": ["School of Abjuration", "School of Conjuration", "School of Divination", "School of Enchantment", "School of Evocation", "School of Illusion", "School of Necromancy", "School of Transmutation"]
+};
+
+const WEAPON_TABLE = {
+  // Simple Melee
+  "Club": { damage: "1d4", type: "Bludgeoning", props: "Light" },
+  "Dagger": { damage: "1d4", type: "Piercing", props: "Finesse, Light, Thrown" },
+  "Greatclub": { damage: "1d8", type: "Bludgeoning", props: "Two-handed" },
+  "Handaxe": { damage: "1d6", type: "Slashing", props: "Light, Thrown" },
+  "Javelin": { damage: "1d6", type: "Piercing", props: "Thrown" },
+  "Light Hammer": { damage: "1d4", type: "Bludgeoning", props: "Light, Thrown" },
+  "Mace": { damage: "1d6", type: "Bludgeoning", props: "" },
+  "Quarterstaff": { damage: "1d6", type: "Bludgeoning", props: "Versatile (1d8)" },
+  "Sickle": { damage: "1d4", type: "Slashing", props: "Light" },
+  "Spear": { damage: "1d6", type: "Piercing", props: "Thrown, Versatile (1d8)" },
+  
+  // Simple Ranged
+  "Crossbow, Light": { damage: "1d8", type: "Piercing", props: "Range, Loading, Two-handed" },
+  "Dart": { damage: "1d4", type: "Piercing", props: "Finesse, Thrown" },
+  "Shortbow": { damage: "1d6", type: "Piercing", props: "Range, Two-handed" },
+  "Sling": { damage: "1d4", type: "Bludgeoning", props: "Range" },
+
+  // Martial Melee
+  "Battleaxe": { damage: "1d8", type: "Slashing", props: "Versatile (1d10)" },
+  "Flail": { damage: "1d8", type: "Bludgeoning", props: "" },
+  "Glaive": { damage: "1d10", type: "Slashing", props: "Heavy, Reach, Two-handed" },
+  "Greataxe": { damage: "1d12", type: "Slashing", props: "Heavy, Two-handed" },
+  "Greatsword": { damage: "2d6", type: "Slashing", props: "Heavy, Two-handed" },
+  "Halberd": { damage: "1d10", type: "Slashing", props: "Heavy, Reach, Two-handed" },
+  "Lance": { damage: "1d12", type: "Piercing", props: "Reach, Special" },
+  "Longsword": { damage: "1d8", type: "Slashing", props: "Versatile (1d10)" },
+  "Maul": { damage: "2d6", type: "Bludgeoning", props: "Heavy, Two-handed" },
+  "Morningstar": { damage: "1d8", type: "Piercing", props: "" },
+  "Pike": { damage: "1d10", type: "Piercing", props: "Heavy, Reach, Two-handed" },
+  "Rapier": { damage: "1d8", type: "Piercing", props: "Finesse" },
+  "Scimitar": { damage: "1d6", type: "Slashing", props: "Finesse, Light" },
+  "Shortsword": { damage: "1d6", type: "Piercing", props: "Finesse, Light" },
+  "Trident": { damage: "1d6", type: "Piercing", props: "Thrown, Versatile (1d8)" },
+  "War Pick": { damage: "1d8", type: "Piercing", props: "" },
+  "Warhammer": { damage: "1d8", type: "Bludgeoning", props: "Versatile (1d10)" },
+  "Whip": { damage: "1d4", type: "Slashing", props: "Finesse, Reach" },
+
+  // Martial Ranged
+  "Blowgun": { damage: "1", type: "Piercing", props: "Range, Loading" },
+  "Crossbow, Hand": { damage: "1d6", type: "Piercing", props: "Range, Light, Loading" },
+  "Crossbow, Heavy": { damage: "1d10", type: "Piercing", props: "Range, Heavy, Loading, Two-handed" },
+  "Longbow": { damage: "1d8", type: "Piercing", props: "Range, Heavy, Two-handed" },
+  "Net": { damage: "-", type: "Special", props: "Thrown, Special" }
+};
+
+const WEAPON_PROPERTIES = [
+  "Finesse", "Heavy", "Light", "Loading", "Range", "Reach", "Special", "Thrown", "Two-handed", "Versatile"
+];
+
+const DAMAGE_TYPES = [
+  "Bludgeoning", "Piercing", "Slashing",
+  "Acid", "Cold", "Fire", "Force", "Lightning", "Necrotic", "Poison", "Psychic", "Radiant", "Thunder"
+];
+
+const ARMOR_TABLE = {
+  "None": { base: 10, type: "none" },
+  "Padded": { base: 11, type: "light", stealth_dis: true },
+  "Leather": { base: 11, type: "light" },
+  "Studded Leather": { base: 12, type: "light" },
+  "Hide": { base: 12, type: "medium" },
+  "Chain Shirt": { base: 13, type: "medium" },
+  "Scale Mail": { base: 14, type: "medium", stealth_dis: true },
+  "Breastplate": { base: 14, type: "medium" },
+  "Half Plate": { base: 15, type: "medium", stealth_dis: true },
+  "Ring Mail": { base: 14, type: "heavy", stealth_dis: true },
+  "Chain Mail": { base: 16, type: "heavy", stealth_dis: true, str_req: 13 },
+  "Splint": { base: 17, type: "heavy", stealth_dis: true, str_req: 15 },
+  "Plate": { base: 18, type: "heavy", stealth_dis: true, str_req: 15 }
+};
+
+
+// --- INVENTORY DATA ---
+const PACKS_LIST = ["Burglar's Pack", "Diplomat's Pack", "Dungeoneer's Pack", "Entertainer's Pack", "Explorer's Pack", "Priest's Pack", "Scholar's Pack"];
+
+const SIMPLE_WEAPONS = [
+  "Club", "Dagger", "Greatclub", "Handaxe", "Javelin", "Light Hammer", "Mace", "Quarterstaff", "Sickle", "Spear", 
+  "Crossbow, Light", "Dart", "Shortbow", "Sling"
+];
+
+const MARTIAL_WEAPONS = [
+  "Battleaxe", "Flail", "Glaive", "Greataxe", "Greatsword", "Halberd", "Lance", "Longsword", "Maul", "Morningstar", "Pike", "Rapier", "Scimitar", "Shortsword", "Trident", "War Pick", "Warhammer", "Whip", 
+  "Blowgun", "Crossbow, Hand", "Crossbow, Heavy", "Longbow", "Net"
+];
+
+// --- BACKGROUNDS (Origins - Ability Scores & Skills) ---
+const BACKGROUNDS = {
+  "Acolyte": { stats: ["wis", "int"], skills: ["Insight", "Religion"] },
+  "Charlatan": { stats: ["cha", "dex"], skills: ["Deception", "Sleight of Hand"] },
+  "Criminal": { stats: ["dex", "int"], skills: ["Stealth", "Thieves' Tools"] },
+  "Entertainer": { stats: ["cha", "dex"], skills: ["Acrobatics", "Performance"] },
+  "Folk Hero": { stats: ["wis", "str"], skills: ["Animal Handling", "Survival"] },
+  "Guild Artisan": { stats: ["int", "cha"], skills: ["Insight", "Persuasion"] },
+  "Hermit": { stats: ["wis", "int"], skills: ["Medicine", "Religion"] },
+  "Noble": { stats: ["cha", "int"], skills: ["History", "Persuasion"] },
+  "Outlander": { stats: ["str", "wis"], skills: ["Athletics", "Survival"] },
+  "Sage": { stats: ["int", "wis"], skills: ["Arcana", "History"] },
+  "Sailor": { stats: ["dex", "wis"], skills: ["Athletics", "Perception"] },
+  "Soldier": { stats: ["str", "con"], skills: ["Athletics", "Intimidation"] },
+  "Urchin": { stats: ["dex", "wis"], skills: ["Sleight of Hand", "Stealth"] }
 };
 
 // SPELL SLOT TABLES (Corrected: Index 0 = Level 1)
@@ -736,17 +839,28 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
   const [formData, setFormData] = useState({
     // Identity & Vitals
     name: "", race: "", char_class: "", subclass: "", level: 1, 
-    background: "", alignment: "", hp_max: 10, ac: 10, speed: 30, initiative: 0, hit_dice_total: "1d8",
+    background: "", alignment: "", hp_max: 0, ac: 10, speed: 30, initiative: 0, hit_dice_total: "1d8",
     proficiency_bonus: 2, 
     
     // Stats
     str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10,
+
+    //Equipment
+    equipped_armor: "None",
+    shield_equipped: false,
+    custom_armor_stats: { name: "", base: 10, type: "light" },
+
+    //Saving Throws
+    saving_throws: [],
     
     // Proficiencies & Features
     armor_prof: {}, weapon_prof: {}, languages: {}, tools_prof: {}, skill_prof: {},
     feats: [], class_features: [], species_features: [], subclass_features: [],
 
-    // --- NEW SPELLCASTING ENGINE ---
+    // INVENTORY ARRAY
+    inventory: [],
+
+    // SPELLCASTING ENGINE ---
     spell_save_dc: 0, 
     spell_attack_mod: 0,
     
@@ -770,6 +884,21 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
   const [tempSpells, setTempSpells] = useState({0:"", 1:"", 2:"", 3:"", 4:"", 5:"", 6:"", 7:"", 8:"", 9:""});
   const subSpellData = SUBCLASS_SPELL_DATA[formData.subclass];
   const classData = CLASS_DATA[formData.char_class];
+  // Updated state for Tag System
+  const [newItem, setNewItem] = useState({ 
+    type: "Weapon", name: "", isCustom: false, 
+    ac: 10, armorType: "light", stealth: false,
+    
+    //Weapon Categories
+    wpnCategory: "Simple",  // Simple vs Martial
+    wpnRange: "Melee",      // Melee vs Ranged
+
+    // Multi-Damage System: List of objects { dice: "1d8", type: "Slashing" }
+    damageList: [], 
+    tempDice: "", tempType: "", // Temp inputs for adding a damage pair
+
+    properties: [], tempProp: "" // Properties Tags
+  });
 
   // Caster Type: Check Subclass first ("third"), then Class ("full"/"half"), otherwise "none"
   const casterType = subSpellData ? subSpellData.type : (classData?.caster_type || "none");
@@ -781,13 +910,80 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
   // Spell List Source: Eldritch Knights use "Wizard" list, etc.
   const spellListSource = subSpellData ? subSpellData.list : formData.char_class;
 
-  // --- AUTOMATION: Hit Dice ---
+  // --- MAIN CALCULATOR ENGINE ---
+  // Auto-calculates HP, AC, Initiative, Saves, Spell Stats, and Hit Dice
   useEffect(() => {
-    if (CLASS_DATA[formData.char_class]) {
-      const die = CLASS_DATA[formData.char_class].hit_die;
-      setFormData(prev => ({ ...prev, hit_dice_total: `${formData.level}${die}` }));
+    // 1. BASICS
+    const lvl = formData.level;
+    const prof = Math.ceil(lvl / 4) + 1;
+    const conMod = calcMod(formData.con);
+    const dexMod = calcMod(formData.dex);
+    const classInfo = CLASS_DATA[formData.char_class];
+
+    // 2. HP CALCULATION (Fixed HP: Max at Lvl 1 + Avg thereafter)
+    // Formula: (MaxDie + Con) + (AvgDie + Con)*(Lvl-1) + Tough
+    const hitDie = classInfo?.hit_die || 8;
+    const avgDie = Math.ceil(hitDie / 2) + 1;
+    const toughFeat = formData.feats.includes("Tough") ? (2 * lvl) : 0;
+
+    const calculatedHP = (hitDie + conMod) + ((avgDie + conMod) * (lvl - 1)) + toughFeat;
+
+    // 3. AC CALCULATION
+    let armor = ARMOR_TABLE[formData.equipped_armor];
+
+    // If not in standard table, check Inventory for custom item stats
+    if (!armor) {
+      const invItem = formData.inventory.find(i => i.name === formData.equipped_armor);
+      if (invItem && invItem.stats) {
+        armor = invItem.stats;
+      }
     }
-  }, [formData.char_class, formData.level]);
+    
+    // Fallback if nothing found
+    if (!armor) armor = ARMOR_TABLE["None"];
+
+    let calculatedAC = armor.base;
+    // ... (Keep the rest of the logic for Dex/Shield/Monk/Barbarian exactly the same) ...
+    if (armor.type === "light" || armor.type === "none") {
+      calculatedAC += dexMod;
+      if (formData.char_class === "Barbarian" && armor.type === "none" && !formData.shield_equipped) {
+        calculatedAC = 10 + dexMod + conMod;
+      }
+      if (formData.char_class === "Monk" && armor.type === "none" && !formData.shield_equipped) {
+        calculatedAC = 10 + dexMod + calcMod(formData.wis);
+      }
+    } else if (armor.type === "medium") {
+      calculatedAC += Math.min(dexMod, 2);
+    }
+    if (formData.shield_equipped) calculatedAC += 2;
+
+    // 4. INITIATIVE (Dex + Alert Feat)
+    const alertBonus = formData.feats.includes("Alert") ? prof : 0;
+    const calculatedInit = dexMod + alertBonus;
+
+    // 5. SPELL STATS
+    const castMod = calcMod(formData[castingStat]);
+    const dc = 8 + prof + castMod;
+    const atk = prof + castMod;
+
+    // APPLY UPDATES
+    setFormData(prev => ({
+      ...prev,
+      hp_max: calculatedHP > 0 ? calculatedHP : 1,
+      ac: calculatedAC,
+      initiative: calculatedInit,
+      proficiency_bonus: prof,
+      saving_throws: classInfo?.saves || [],
+      spell_save_dc: dc,
+      spell_attack_mod: atk,
+      hit_dice_total: `${lvl}d${hitDie}`
+    }));
+
+  }, [
+    formData.level, formData.char_class, formData.feats, 
+    formData.equipped_armor, formData.shield_equipped,
+    formData.str, formData.dex, formData.con, formData.int, formData.wis, formData.cha
+  ]);
 
   // --- AUTOMATION: Class Features ---
   useEffect(() => {
@@ -846,20 +1042,6 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
       });
     }
   }, [formData.char_class, formData.level]);
-
-  // --- AUTOMATION: Subclass Features ---
-  useEffect(() => {
-    let activeSubFeats = [];
-    if (SUBCLASS_FEATURES[formData.subclass]) {
-      for (let i = 1; i <= formData.level; i++) {
-        if (SUBCLASS_FEATURES[formData.subclass][i]) {
-          activeSubFeats = [...activeSubFeats, ...SUBCLASS_FEATURES[formData.subclass][i]];
-        }
-      }
-    }
-    setFormData(prev => ({ ...prev, subclass_features: activeSubFeats }));
-  }, [formData.subclass, formData.level]);
-
 
 // --- LOAD DATA ---
   useEffect(() => {
@@ -922,13 +1104,13 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
         languages: ext.languages || {},
         tools_prof: ext.tools_prof || {},
         skill_prof: ext.skill_prof || {},
+        inventory: ext.inventory || [],
 
         feats: ext.feats || [],
         class_features: ext.class_features || [], 
         species_features: ext.species_features || [],
         subclass_features: ext.subclass_features || [],
 
-        // NEW SPELL DATA
         spells: loadedSpells,
         slots: loadedSlots,
         spell_save_dc: 0, 
@@ -939,7 +1121,8 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
         custom_language: ext.custom_language || "",
         custom_skills: ext.custom_skills || "", 
         custom_tools: ext.custom_tools || "",
-        custom_features: ext.custom_features || ""
+        custom_features: ext.custom_features || "",
+        custom_armor_stats: ext.custom_armor_stats || { name: "", base: 10, type: "light" }
       });
 
       setIsCustomRace(!RACES.includes(characterToEdit.race) && characterToEdit.race !== "");
@@ -958,7 +1141,7 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
         background: "", alignment: "", hp_max: 10, ac: 10, speed: 30, initiative: 0, hit_dice_total: "1d8",
         proficiency_bonus: 2, str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10,
         armor_prof: {}, weapon_prof: {}, languages: {}, tools_prof: {}, skill_prof: {},
-        feats: [], class_features: [], species_features: [], subclass_features: [],
+        feats: [], class_features: [], species_features: [], subclass_features: [], inventory: [],
 
         spell_save_dc: 0, spell_attack_mod: 0,
         spells: { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [] },
@@ -968,7 +1151,8 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
           7: {max: 0, curr: 0}, 8: {max: 0, curr: 0}, 9: {max: 0, curr: 0}
         },
 
-        custom_armor: "", custom_weapon: "", custom_language: "", custom_skills: "", custom_tools: "", custom_features: ""
+        custom_armor: "", custom_weapon: "", custom_language: "", custom_skills: "", custom_tools: "", custom_features: "", 
+        custom_armor_stats: { name: "", base: 10, type: "light" }
       });
       setIsCustomRace(false);
       setIsCustomClass(false);
@@ -1039,6 +1223,52 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
       spells: { ...prev.spells, [lvl]: prev.spells[lvl].filter(s => s !== spellName) }
     }));
   };
+
+  // --- HELPER: CALCULATE ATTACK STATS ---
+  const getAttackData = (item) => {
+    const stats = item.stats || WEAPON_TABLE[item.name] || {};
+    
+    // 1. Get Modifiers
+    const strMod = calcMod(formData.str);
+    const dexMod = calcMod(formData.dex);
+    const prof = formData.proficiency_bonus;
+    
+    // 2. Determine Stat (Str vs Dex)
+    const props = (stats.properties || stats.props || "").toLowerCase();
+    const isFinesse = props.includes("finesse");
+    const isRanged = (stats.rangeType === "Ranged") || props.includes("range") || ["shortbow", "longbow", "crossbow", "blowgun", "sling", "dart"].some(n => item.name.toLowerCase().includes(n));
+    
+    let mod = strMod;
+    if (isFinesse) mod = Math.max(strMod, dexMod);
+    else if (isRanged && !props.includes("thrown")) mod = dexMod;
+
+    // 3. Construct Damage String
+    let damageString = "";
+    
+    // A. If using new Multi-Damage List
+    if (stats.damageList && stats.damageList.length > 0) {
+      damageString = stats.damageList.map((d, i) => {
+        // Add modifier only to the first damage component
+        const modifier = (i === 0 && mod !== 0) ? (mod > 0 ? `+${mod}` : mod) : "";
+        return `${d.dice}${modifier} ${d.type}`;
+      }).join(" + ");
+    } 
+    // B. Fallback for Standard/Old items
+    else {
+      const baseDmg = stats.damage || "?";
+      const modifier = mod !== 0 ? (mod > 0 ? `+${mod}` : mod) : "";
+      damageString = `${baseDmg}${modifier} ${stats.type || stats.dmgType || ""}`;
+    }
+
+    const totalAtk = mod + prof;
+
+    return {
+      atk: totalAtk >= 0 ? `+${totalAtk}` : totalAtk,
+      dmg: damageString,
+      // (Type is now embedded in the damage string)
+      type: "" 
+    };
+  };
   
   // Helper to render a row for Level X spells
   const renderSpellRow = (lvl) => {
@@ -1084,6 +1314,102 @@ function CharacterForm({ onCharacterSaved, characterToEdit, onCancelEdit }) {
       </div>
     );
   };
+  
+  // --- TAG HANDLERS ---
+  const addTag = (field, value, tempField) => {
+    if (!value) return;
+    setNewItem(prev => ({
+      ...prev,
+      [field]: prev[field].includes(value) ? prev[field] : [...prev[field], value],
+      [tempField]: "" // Clear the text input after adding
+    }));
+  };
+
+  const removeTag = (field, value) => {
+    setNewItem(prev => ({
+      ...prev,
+      [field]: prev[field].filter(t => t !== value)
+    }));
+  };
+
+  // --- INVENTORY HANDLERS ---
+  const addDamagePair = () => {
+    if (!newItem.tempDice || !newItem.tempType) return;
+    setNewItem(prev => ({
+      ...prev,
+      damageList: [...prev.damageList, { dice: prev.tempDice, type: prev.tempType }],
+      tempDice: "", tempType: "" // Clear inputs
+    }));
+  };
+
+  const removeDamagePair = (index) => {
+    setNewItem(prev => ({
+      ...prev,
+      damageList: prev.damageList.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleAddItem = () => {
+    if (!newItem.name) return;
+    
+    const itemData = { 
+      name: newItem.name, 
+      type: newItem.type, 
+      id: Date.now() 
+    };
+
+    // 1. Capture Custom Armor Stats
+    if (newItem.type === "Armor" && newItem.isCustom) {
+      itemData.stats = {
+        base: parseInt(newItem.ac) || 10,
+        type: newItem.armorType,
+        stealth_dis: newItem.stealth // New: Stealth Disadvantage
+      };
+    }
+    
+    // 2. Capture Custom Weapon Stats 
+    if (newItem.type === "Weapon" && newItem.isCustom) {
+      itemData.stats = {
+        category: newItem.wpnCategory, 
+        rangeType: newItem.wpnRange,   
+        
+        // Save the complex damage list directly
+        damageList: newItem.damageList, 
+        
+        // Also construct a simple string for fallback displays
+        damage: newItem.damageList.map(d => `${d.dice} ${d.type}`).join(" + "), 
+        
+        properties: newItem.properties.join(", ")
+      };
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      inventory: [...prev.inventory, itemData]
+    }));
+    
+    // Reset form
+    setNewItem({ 
+      type: "Weapon", name: "", isCustom: false, 
+      ac: 10, armorType: "light", stealth: false,
+      wpnCategory: "Simple", wpnRange: "Melee",
+      damageList: [], tempDice: "", tempType: "",
+      properties: [], tempProp: ""
+    });
+  };
+
+  const handleRemoveItem = (id) => {
+    setFormData(prev => ({
+      ...prev,
+      inventory: prev.inventory.filter(item => item.id !== id)
+    }));
+  };
+
+  const handleEquip = (item) => {
+    if (item.type === "Armor") {
+      setFormData(prev => ({ ...prev, equipped_armor: item.name }));
+    }
+  };
 
 const handleSubmit = async (e) => {
     e.preventDefault();
@@ -1116,18 +1442,16 @@ const handleSubmit = async (e) => {
         feats: formData.feats,
         class_features: formData.class_features, 
         species_features: formData.species_features,
-        
-        // --- NEW SPELL DATA ---
-        spells: formData.spells, // Saves the arrays for Levels 0-9
-        slots: formData.slots,   // Saves the slot tracking for Levels 1-9
-        // ----------------------
-
+        spells: formData.spells,
+        slots: formData.slots,  
         custom_armor: formData.custom_armor,
         custom_weapon: formData.custom_weapon,
         custom_language: formData.custom_language,
         custom_skills: formData.custom_skills, 
         custom_tools: formData.custom_tools,
-        custom_features: formData.custom_features 
+        custom_features: formData.custom_features,
+        inventory: formData.inventory,
+        custom_armor_stats: formData.custom_armor_stats
       }
     };
 
@@ -1156,17 +1480,17 @@ const handleSubmit = async (e) => {
       {/* --- IDENTITY --- */}
       <fieldset style={{ padding: "1rem", border: "1px solid #ccc" }}>
         <legend><strong>Identity</strong></legend>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-            <input name="name" placeholder="Name" value={formData.name} onChange={handleChange} required />
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", alignItems: "center" }}>
             
-            {/* Race Select (Existing Logic) */}
+            {/* Name & Species */}
+            <input name="name" placeholder="Name" value={formData.name} onChange={handleChange} required />
             {isCustomRace ? (
                <div style={{display: "flex", gap: "5px"}}><input name="race" placeholder="Species..." value={formData.race} onChange={handleChange} autoFocus required style={{flex: 1}}/><button type="button" onClick={() => setIsCustomRace(false)}>Back</button></div>
             ) : (
               <select name="race" value={RACES.includes(formData.race) ? formData.race : ""} onChange={(e) => handleDropdownChange(e, "race", setIsCustomRace)} required><option value="" disabled>Species</option>{RACES.map(r => <option key={r} value={r}>{r}</option>)}<option value="CUSTOM_OPTION">+ Custom...</option></select>
             )}
 
-            {/* Class Select (Updates to reset subclass on change) */}
+            {/* Class */}
             {isCustomClass ? (
                <div style={{display: "flex", gap: "5px"}}><input name="char_class" placeholder="Class..." value={formData.char_class} onChange={handleChange} autoFocus required style={{flex: 1}}/><button type="button" onClick={() => setIsCustomClass(false)}>Back</button></div>
             ) : (
@@ -1177,7 +1501,7 @@ const handleSubmit = async (e) => {
               </select>
             )}
 
-            {/* NEW: Subclass Select */}
+            {/* Subclass (Spans Full Width) */}
             {formData.char_class && !isCustomClass && (
               isCustomSubclass ? (
                 <div style={{display: "flex", gap: "5px", gridColumn: "span 2"}}>
@@ -1193,19 +1517,124 @@ const handleSubmit = async (e) => {
               )
             )}
 
-            <label>Level: <input type="number" name="level" value={formData.level} onChange={handleChange} min="1" max="20" style={{width: "60px"}} /></label>
+            {/* Level (Left) & Proficiency Bonus (Right) */}
+            <div>
+               <label style={{fontWeight: "bold", color: "#444"}}>Level: </label>
+               <input type="number" name="level" value={formData.level} onChange={handleChange} min="1" max="20" style={{width: "60px", padding: "5px", marginLeft: "5px"}} />
+            </div>
+
+            <div style={{background: "#E8F5E9", padding: "5px 10px", borderRadius: "4px", textAlign: "center", border: "1px solid #C8E6C9"}}>
+                <span style={{fontSize: "0.9em", color: "#2E7D32", textTransform: "uppercase", letterSpacing: "1px"}}>Proficiency: </span>
+                <strong style={{fontSize: "1.2em", color: "#1B5E20", marginLeft: "5px"}}>+{formData.proficiency_bonus}</strong>
+            </div>
+
         </div>
       </fieldset>
 
-      {/* --- VITALS --- */}
-      <fieldset style={{ padding: "1rem", border: "1px solid #ccc" }}>
-        <legend><strong>Vitals</strong></legend>
-        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-            <label>HP: <input type="number" name="hp_max" value={formData.hp_max} onChange={handleChange} style={{width: "50px"}} /></label>
-            <label>AC: <input type="number" name="ac" value={formData.ac} onChange={handleChange} style={{width: "50px"}} /></label>
-            <label>Spd: <input type="number" name="speed" value={formData.speed} onChange={handleChange} style={{width: "50px"}} /></label>
-            <label>Init: <input type="number" name="initiative" value={formData.initiative} onChange={handleChange} style={{width: "50px"}} /></label>
-            <label>HD: <input name="hit_dice_total" value={formData.hit_dice_total} readOnly style={{width: "60px", background: "#f0f0f0", textAlign: "center"}} /></label>
+      {/* VITALS & EQUIPMENT (Updated: Inventory Only) */}
+      <fieldset style={{ padding: "1rem", border: "1px solid #ccc", background: "#fff" }}>
+        <legend><strong>Vitals & Equipment</strong></legend>
+        
+        {/* Row 1: Calculated Vitals */}
+        <div style={{ display: "flex", gap: "15px", flexWrap: "wrap", justifyContent: "space-around", marginBottom: "15px" }}>
+            <div style={{textAlign: "center"}}>
+                <div style={{fontSize: "0.8em", color: "#666"}}>HP Max</div>
+                <div style={{fontSize: "1.4em", fontWeight: "bold", color: "#D32F2F"}}>{formData.hp_max}</div>
+            </div>
+            <div style={{textAlign: "center"}}>
+                <div style={{fontSize: "0.8em", color: "#666"}}>AC</div>
+                <div style={{fontSize: "1.4em", fontWeight: "bold", color: "#1976D2"}}>{formData.ac}</div>
+            </div>
+            <div style={{textAlign: "center"}}>
+                <div style={{fontSize: "0.8em", color: "#666"}}>Init</div>
+                <div style={{fontSize: "1.4em", fontWeight: "bold"}}>{formData.initiative >= 0 ? "+" : ""}{formData.initiative}</div>
+            </div>
+            <div style={{textAlign: "center"}}>
+                <div style={{fontSize: "0.8em", color: "#666"}}>Speed</div>
+                <input type="number" name="speed" value={formData.speed} onChange={handleChange} style={{width: "40px", textAlign: "center", fontWeight: "bold", border: "none", borderBottom: "1px solid #ccc", fontSize: "1.1em"}} />
+            </div>
+            <div style={{textAlign: "center"}}>
+                <div style={{fontSize: "0.8em", color: "#666"}}>Hit Dice</div>
+                <div style={{fontSize: "1.2em", fontWeight: "bold"}}>{formData.hit_dice_total}</div>
+            </div>
+        </div>
+
+        {/* Row 2: Equipment Controls (Drives AC) */}
+        <div style={{borderTop: "1px solid #eee", paddingTop: "10px"}}>
+          <div style={{display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap"}}>
+               <label style={{fontSize: "0.9em", fontWeight: "bold"}}>Armor:</label>
+               
+               <select name="equipped_armor" value={formData.equipped_armor} onChange={handleChange} style={{minWidth: "150px", padding: "5px"}}>
+                   <option value="None">None (Unarmored)</option>
+                   
+                   {/* Only show items currently in Inventory */}
+                   <optgroup label="From Inventory">
+                     {formData.inventory.filter(item => item.type === "Armor").map(item => {
+                        const stats = item.stats || ARMOR_TABLE[item.name];
+                        return <option key={item.id} value={item.name}>{item.name} {stats ? `(AC ${stats.base})` : ""}</option>;
+                     })}
+                   </optgroup>
+               </select>
+
+               <label style={{fontSize: "0.9em", display: "flex", alignItems: "center", cursor: "pointer", marginLeft: "10px"}}>
+                  <input type="checkbox" name="shield_equipped" checked={formData.shield_equipped} onChange={e => setFormData(prev => ({...prev, shield_equipped: e.target.checked}))} style={{marginRight: "5px"}}/> 
+                  +Shield
+               </label>
+          </div>
+          
+          {/* Helper Text if no armor is available to equip */}
+          {formData.inventory.filter(i => i.type === "Armor").length === 0 && (
+            <div style={{fontSize: "0.8em", color: "#d32f2f", marginTop: "5px"}}>
+              * Add Armor to your Inventory below to see it here.
+            </div>
+          )}
+        </div>
+      </fieldset>
+
+      {/* --- COMBAT: ATTACKS & SPELLCASTING --- */}
+      <fieldset style={{ padding: "1rem", border: "1px solid #ccc", marginTop: "1rem", background: "#fff" }}>
+        <legend><strong>Attacks & Spellcasting</strong></legend>
+        
+        <div style={{border: "1px solid #ccc", borderRadius: "4px", overflow: "hidden"}}>
+          <table style={{width: "100%", borderCollapse: "collapse", fontSize: "0.9em"}}>
+            <thead>
+              <tr style={{background: "#eee", textAlign: "left"}}>
+                <th style={{padding: "8px", borderBottom: "1px solid #ccc"}}>Name</th>
+                <th style={{padding: "8px", borderBottom: "1px solid #ccc", width: "60px", textAlign:"center"}}>Atk</th>
+                <th style={{padding: "8px", borderBottom: "1px solid #ccc"}}>Damage / Type</th>
+                <th style={{padding: "8px", borderBottom: "1px solid #ccc"}}>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {/* 1. AUTO-GENERATED WEAPONS FROM INVENTORY */}
+              {formData.inventory.filter(i => i.type === "Weapon").map(item => {
+                const data = getAttackData(item);
+                return (
+                  <tr key={item.id} style={{borderBottom: "1px solid #eee"}}>
+                    <td style={{padding: "8px", fontWeight: "bold"}}>{item.name}</td>
+                    <td style={{padding: "8px", textAlign:"center", background: "#f9f9f9", fontWeight: "bold"}}>{data.atk}</td>
+                    <td style={{padding: "8px"}}>{data.dmg} {data.type}</td>
+                    <td style={{padding: "8px", color: "#666", fontStyle: "italic"}}>{item.stats?.properties}</td>
+                  </tr>
+                );
+              })}
+
+              {/* 2. MANUAL ATTACK ROW (For Cantrips/Special) */}
+              {/* We show a blank row user can type in, or placeholder text if empty */}
+              {formData.inventory.filter(i => i.type === "Weapon").length === 0 && (
+                 <tr>
+                   <td colSpan="4" style={{padding: "15px", textAlign: "center", color: "#888", fontStyle: "italic"}}>
+                     Add weapons to your Inventory to see them listed here.
+                   </td>
+                 </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+        
+        {/* Simple Manual Entry for things like Fire Bolt */}
+        <div style={{marginTop: "10px", fontSize: "0.85em", color: "#666"}}>
+           <strong>Tip:</strong> Weapons added to Inventory appear above automatically.
         </div>
       </fieldset>
 
@@ -1275,6 +1704,11 @@ const handleSubmit = async (e) => {
               </div>
             ))}
         </div>
+        <div style={{marginTop: "10px", borderTop: "1px solid #eee", paddingTop: "5px", fontSize: "0.9em"}}>
+            <strong>Attack Bonuses: </strong>
+            <span style={{color: "#D32F2F", marginRight: "10px"}}>Melee: +{calcMod(formData.str) + formData.proficiency_bonus}</span>
+            <span style={{color: "#1976D2"}}>Ranged: +{calcMod(formData.dex) + formData.proficiency_bonus}</span>
+        </div>
       </fieldset>
 
       {/* --- FEATS --- */}
@@ -1334,6 +1768,195 @@ const handleSubmit = async (e) => {
                 {TOOLS_LIST.map(tool => (<label key={tool}><input type="checkbox" name={tool} checked={!!formData.tools_prof[tool]} onChange={(e) => handleCheckboxChange(e, "tools_prof")} /> {tool}</label>))}
             </div>
             <input name="custom_tools" placeholder="Other Tools" value={formData.custom_tools} onChange={handleChange} style={{width: "100%", boxSizing: "border-box", padding: "5px"}} />
+        </div>
+      </fieldset>
+
+      {/* --- INVENTORY --- */}
+      <fieldset style={{ padding: "1rem", border: "1px solid #ccc", marginTop: "1rem" }}>
+        <legend><strong>Inventory</strong></legend>
+        
+        {/* ADD ITEM CONTROLS */}
+        <div style={{ display: "flex", gap: "10px", marginBottom: "15px", flexWrap: "wrap", alignItems: "center" }}>
+          <select 
+            value={newItem.type} 
+            onChange={e => setNewItem({ type: e.target.value, name: "", isCustom: false })}
+            style={{ padding: "5px" }}
+          >
+            <option value="Weapon">Weapon</option>
+            <option value="Armor">Armor</option>
+            <option value="Pack">Equipment Pack</option>
+            <option value="Custom">Other</option>
+          </select>
+
+          {/* DYNAMIC INPUTS */}
+          {newItem.isCustom || newItem.type === "Custom" ? (
+             <div style={{display:"flex", flex: 1, gap: "5px", alignItems: "center", flexWrap: "wrap"}}>
+                <input 
+                  placeholder={`Custom ${newItem.type} Name`} 
+                  value={newItem.name} 
+                  onChange={e => setNewItem(prev => ({ ...prev, name: e.target.value }))} 
+                  style={{ flex: 1, padding: "5px", minWidth: "100px" }}
+                  autoFocus
+                />
+                
+                {/* CUSTOM ARMOR PARAMS */}
+                {newItem.type === "Armor" && (
+                   <>
+                     <input type="number" placeholder="AC" value={newItem.ac} onChange={e => setNewItem(prev => ({ ...prev, ac: e.target.value }))} style={{width: "40px", padding: "5px"}} />
+                     <select value={newItem.armorType} onChange={e => setNewItem(prev => ({ ...prev, armorType: e.target.value }))} style={{padding: "5px"}}>
+                       <option value="light">Light</option><option value="medium">Medium</option><option value="heavy">Heavy</option>
+                     </select>
+                     <label style={{fontSize: "0.8em", display: "flex", alignItems: "center"}}>
+                        <input type="checkbox" checked={newItem.stealth} onChange={e => setNewItem(prev => ({...prev, stealth: e.target.checked}))} /> 
+                        Stealth Dis.
+                     </label>
+                   </>
+                )}
+
+                {/* CUSTOM WEAPON PARAMS */}
+                {newItem.type === "Weapon" && (
+                   <div style={{display: "flex", flexDirection: "column", gap: "5px", borderLeft: "2px solid #ddd", paddingLeft: "8px"}}>
+                     
+                     {/* 1. Category & Range Selectors */}
+                     <div style={{display: "flex", gap: "5px"}}>
+                        <select value={newItem.wpnCategory} onChange={e => setNewItem(prev => ({...prev, wpnCategory: e.target.value}))} style={{padding: "3px", fontSize: "0.9em"}}>
+                          <option value="Simple">Simple</option>
+                          <option value="Martial">Martial</option>
+                        </select>
+                        <select value={newItem.wpnRange} onChange={e => setNewItem(prev => ({...prev, wpnRange: e.target.value}))} style={{padding: "3px", fontSize: "0.9em"}}>
+                          <option value="Melee">Melee</option>
+                          <option value="Ranged">Ranged</option>
+                        </select>
+                     </div>
+
+                     {/* 2. Multi-Damage Manager */}
+                     <div style={{display: "flex", flexDirection: "column", gap: "3px"}}>
+                        <div style={{display: "flex", gap: "3px"}}>
+                           <input placeholder="Dice (1d8)" value={newItem.tempDice} onChange={e => setNewItem(prev => ({ ...prev, tempDice: e.target.value }))} style={{width: "60px", padding: "3px"}} />
+                           <select value={newItem.tempType} onChange={e => setNewItem(prev => ({ ...prev, tempType: e.target.value }))} style={{padding: "3px", width: "90px"}}>
+                              <option value="">Type...</option>
+                              {DAMAGE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                           </select>
+                           <button type="button" onClick={addDamagePair} style={{fontSize: "0.8em", cursor: "pointer", fontWeight: "bold"}}>+</button>
+                        </div>
+                        {/* List of Added Damage Pairs */}
+                        <div style={{display: "flex", flexWrap: "wrap", gap: "3px"}}>
+                          {newItem.damageList.map((pair, idx) => (
+                             <span key={idx} style={{background: "#ffebee", color: "#c62828", padding: "2px 6px", borderRadius: "4px", fontSize: "0.8em", border: "1px solid #ffcdd2", display: "flex", alignItems: "center"}}>
+                                {pair.dice} {pair.type}
+                                <span onClick={() => removeDamagePair(idx)} style={{marginLeft: "4px", cursor: "pointer", fontWeight: "bold"}}>×</span>
+                             </span>
+                          ))}
+                        </div>
+                     </div>
+
+                     {/* 3. Properties Manager (Same as before) */}
+                     <div style={{display: "flex", flexWrap: "wrap", gap: "3px", maxWidth: "300px"}}>
+                        <select value="" onChange={(e) => addTag("properties", e.target.value, "tempProp")} style={{padding: "3px", width: "100px"}}>
+                           <option value="" disabled>+ Add Prop</option>
+                           {WEAPON_PROPERTIES.map(p => <option key={p} value={p}>{p}</option>)}
+                        </select>
+                        <div style={{display: "flex"}}>
+                           <input placeholder="Custom..." value={newItem.tempProp} onChange={e => setNewItem(prev => ({...prev, tempProp: e.target.value}))} style={{width: "70px", padding: "3px"}} />
+                           <button type="button" onClick={() => addTag("properties", newItem.tempProp, "tempProp")} style={{fontSize: "0.8em"}}>+</button>
+                        </div>
+                        {/* Property Tags */}
+                        <div style={{display: "flex", flexWrap: "wrap", gap: "3px"}}>
+                          {newItem.properties.map(p => (
+                            <span key={p} style={{background: "#e3f2fd", color: "#1565c0", padding: "2px 6px", borderRadius: "4px", fontSize: "0.8em", display: "flex", alignItems: "center", border: "1px solid #bbdefb"}}>
+                              {p} <span onClick={() => removeTag("properties", p)} style={{marginLeft: "4px", cursor: "pointer", fontWeight: "bold"}}>×</span>
+                            </span>
+                          ))}
+                        </div>
+                     </div>
+                   </div>
+                )}
+
+                {newItem.type !== "Custom" && <button type="button" onClick={() => setNewItem(prev => ({...prev, isCustom: false, name: ""}))} style={{fontSize: "0.8em"}}>Back</button>}
+             </div>
+          ) : (
+             <>
+               {newItem.type === "Weapon" && (
+                 <select value={newItem.name} onChange={e => e.target.value === "CUSTOM" ? setNewItem(prev => ({...prev, isCustom: true, name: ""})) : setNewItem(prev => ({ ...prev, name: e.target.value }))} style={{ flex: 1, padding: "5px" }}>
+                   <option value="">-- Select Weapon --</option>
+                   <optgroup label="Simple Weapons">{SIMPLE_WEAPONS.map(w => <option key={w} value={w}>{w}</option>)}</optgroup>
+                   <optgroup label="Martial Weapons">{MARTIAL_WEAPONS.map(w => <option key={w} value={w}>{w}</option>)}</optgroup>
+                   <option value="CUSTOM" style={{fontWeight: "bold"}}>+ Custom Weapon...</option>
+                 </select>
+               )}
+               
+               {newItem.type === "Armor" && (
+                 <select value={newItem.name} onChange={e => e.target.value === "CUSTOM" ? setNewItem(prev => ({...prev, isCustom: true, name: ""})) : setNewItem(prev => ({ ...prev, name: e.target.value }))} style={{ flex: 1, padding: "5px" }}>
+                   <option value="">-- Select Armor --</option>
+                   {Object.keys(ARMOR_TABLE).filter(a => a !== "None").map(a => <option key={a} value={a}>{a}</option>)}
+                   <option value="CUSTOM" style={{fontWeight: "bold"}}>+ Custom Armor...</option>
+                 </select>
+               )}
+
+               {newItem.type === "Pack" && (
+                 <select value={newItem.name} onChange={e => e.target.value === "CUSTOM" ? setNewItem(prev => ({...prev, isCustom: true, name: ""})) : setNewItem(prev => ({ ...prev, name: e.target.value }))} style={{ flex: 1, padding: "5px" }}>
+                   <option value="">-- Select Pack --</option>
+                   {PACKS_LIST.map(p => <option key={p} value={p}>{p}</option>)}
+                   <option value="CUSTOM" style={{fontWeight: "bold"}}>+ Custom Pack...</option>
+                 </select>
+               )}
+             </>
+          )}
+
+          <button type="button" onClick={handleAddItem} style={{ background: "#4CAF50", color: "white", border: "none", padding: "5px 15px", cursor: "pointer", borderRadius: "4px" }}>Add</button>
+        </div>
+
+        {/* INVENTORY LIST (Updated with Equip Button) */}
+        <div style={{ background: "#f9f9f9", padding: "10px", borderRadius: "5px", border: "1px solid #eee", minHeight: "50px" }}>
+          {formData.inventory.length === 0 ? <span style={{color: "#888", fontStyle: "italic"}}>Inventory is empty...</span> : null}
+          
+          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+            {formData.inventory.map((item) => {
+              // Check if item matches current equipment
+              const isEquipped = 
+                (formData.equipped_armor === item.name) || 
+                (formData.equipped_armor === "Custom" && formData.custom_armor_stats.name === item.name);
+
+              return (
+                <li key={item.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 0", borderBottom: "1px solid #eee" }}>
+                  <span>
+                    <strong>{item.name}</strong> 
+                    <span style={{ fontSize: "0.8em", color: "#666", marginLeft: "5px" }}>({item.type})</span>
+                    
+                    {/* --- NEW: Display Weapon Stats --- */}
+                    {item.stats && item.type === "Weapon" && (
+                       <span style={{fontSize: "0.8em", color: "#444", marginLeft: "5px", fontStyle: "italic"}}>
+                          — {item.stats.damage} {item.stats.dmgType} {item.stats.properties ? `(${item.stats.properties})` : ""}
+                       </span>
+                    )}
+
+                    {/* --- NEW: Display Armor Stats --- */}
+                    {item.stats && item.type === "Armor" && (
+                       <span style={{fontSize: "0.8em", color: "#444", marginLeft: "5px", fontStyle: "italic"}}>
+                          — AC {item.stats.base} ({item.stats.type}) {item.stats.stealth_dis ? "[Dis]" : ""}
+                       </span>
+                    )}
+
+                    {/* Badge */}
+                    {isEquipped && <span style={{marginLeft: "10px", fontSize: "0.8em", color: "#2E7D32", fontWeight: "bold", background: "#E8F5E9", padding: "2px 6px", borderRadius: "4px"}}>EQUIPPED</span>}
+                  </span>
+                  
+                  <div>
+                    {/* BUTTON: Only show if it's Armor AND NOT equipped */}
+                    {item.type === "Armor" && !isEquipped && (
+                      <button type="button" onClick={() => handleEquip(item)} style={{ marginRight: "10px", fontSize: "0.8em", cursor: "pointer", background: "#e3f2fd", border: "1px solid #2196F3", color: "#0d47a1", borderRadius: "3px", padding: "2px 8px" }}>
+                        Equip
+                      </button>
+                    )}
+                    
+                    <button type="button" onClick={() => handleRemoveItem(item.id)} style={{ color: "red", background: "none", border: "none", cursor: "pointer", fontWeight: "bold" }}>
+                      ✕
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
         </div>
       </fieldset>
 
